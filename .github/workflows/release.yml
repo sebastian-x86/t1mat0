@@ -6,6 +6,12 @@ on:
   push:
     branches: [main]
 
+# Anders als bei den Tests darf ein Release-Lauf nie abgebrochen werden: er
+# taggt, erzeugt das Release und lädt die Binaries hoch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pull-requests: write

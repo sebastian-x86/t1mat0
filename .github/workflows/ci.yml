@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
 
+# Ein neuer Commit auf demselben Branch macht den laufenden Build wertlos.
+# github.head_ref greift bei Pull Requests, github.ref bei Pushes auf main.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
 
