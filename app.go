@@ -136,6 +136,11 @@ func (a *App) announcePhase(state State, finished Phase) {
 	}
 }
 
+// GetVersion returns the release the binary was built from.
+func (a *App) GetVersion() string {
+	return version
+}
+
 // GetState returns the current timer snapshot.
 func (a *App) GetState() State {
 	return a.timer.Snapshot()

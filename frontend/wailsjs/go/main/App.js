@@ -6,6 +6,10 @@ export function GetState() {
   return window['go']['main']['App']['GetState']();
 }
 
+export function GetVersion() {
+  return window['go']['main']['App']['GetVersion']();
+}
+
 export function HideWindow() {
   return window['go']['main']['App']['HideWindow']();
 }
