@@ -165,25 +165,49 @@ function TomatoDrip({progress, running, squeezing = false}: TomatoDripProps) {
                     <line className="drip__glass-shine" x1="76" y1="182" x2="83" y2="230"/>
                 </g>
                 {squeezing && (
-                    <g className="drip__hand">
+                    <g className="drip__foot">
                         <g transform="translate(100 0)">
-                            <rect className="drip__sleeve" x="-27" y="-138" width="54" height="46" rx="10"/>
-                            <rect className="drip__skin" x="-21" y="-112" width="42" height="34" rx="14"/>
-                            <path
-                                className="drip__skin"
-                                d="M-36 -88 q0 -14 14 -14 h44 q14 0 14 14 v24 q0 20 -22 22 h-28 q-22 -2 -22 -22 Z"
-                            />
-                            <path className="drip__skin" d="M-36 -76 q-14 4 -13 16 q1 12 15 10 Z"/>
+                            {/* Carhartt style duck canvas leg, running off the top of the window. */}
+                            <rect className="drip__trouser" x="-26" y="-470" width="52" height="384" rx="10"/>
+                            <g className="drip__stitching">
+                                <line x1="-18" y1="-466" x2="-18" y2="-96"/>
+                                <line x1="-14" y1="-466" x2="-14" y2="-96"/>
+                                <line x1="15" y1="-466" x2="15" y2="-96"/>
+                                <line x1="19" y1="-466" x2="19" y2="-96"/>
+                            </g>
+                            <rect className="drip__cuff" x="-30" y="-100" width="60" height="18" rx="6"/>
 
-                            <g className="drip__fingers">
-                                <path className="drip__skin" d="M-31 -48 q9 -6 18 0 q3 12 -2 20 q-9 6 -15 -2 Z"/>
-                                <path className="drip__skin" d="M-11 -46 q9 -6 18 0 q3 14 -2 23 q-9 6 -15 -2 Z"/>
-                                <path className="drip__skin" d="M9 -48 q9 -6 18 0 q3 12 -2 20 q-9 6 -15 -2 Z"/>
+                            <rect className="drip__sock" x="-19" y="-94" width="36" height="34" rx="11"/>
+
+                            {/* Vans Old Skool: black canvas, white jazz stripe, foxing tape. */}
+                            <rect className="drip__shoe" x="-36" y="-66" width="26" height="22" rx="8"/>
+                            <rect className="drip__shoe" x="-34" y="-60" width="54" height="46" rx="12"/>
+                            <ellipse className="drip__shoe" cx="30" cy="-28" rx="34" ry="15"/>
+                            <path className="drip__shoe-toe" d="M18 -42 q26 2 40 14 q-16 -2 -40 -2 Z"/>
+
+                            <path className="drip__collar" d="M-35 -62 q13 -8 26 -3"/>
+                            <path className="drip__stripe-shadow" d="M-16 -36 q12 12 30 8 q16 -4 26 -12"/>
+                            <path className="drip__stripe" d="M-16 -36 q12 12 30 8 q16 -4 26 -12"/>
+
+                            <g className="drip__laces">
+                                <line x1="2" y1="-54" x2="22" y2="-48"/>
+                                <line x1="1" y1="-48" x2="21" y2="-42"/>
+                                <line x1="0" y1="-42" x2="20" y2="-36"/>
+                                <line x1="-1" y1="-36" x2="19" y2="-30"/>
                             </g>
 
-                            <g className="drip__knuckles">
-                                <path d="M-22 -60 q9 -5 18 0"/>
-                                <path d="M-2 -58 q9 -5 18 0"/>
+                            <rect className="drip__foxing" x="-38" y="-19" width="106" height="19" rx="9"/>
+                            <path className="drip__welt" d="M-36 -19 q52 -4 104 0"/>
+                            <path className="drip__foxing-line" d="M-36 -8 q52 -3 104 0"/>
+                            <rect className="drip__label" x="-32" y="-16" width="11" height="8" rx="2"/>
+                            <g className="drip__waffle">
+                                <line x1="-24" y1="-6" x2="-24" y2="-1"/>
+                                <line x1="-11" y1="-6" x2="-11" y2="-1"/>
+                                <line x1="2" y1="-6" x2="2" y2="-1"/>
+                                <line x1="15" y1="-6" x2="15" y2="-1"/>
+                                <line x1="28" y1="-6" x2="28" y2="-1"/>
+                                <line x1="41" y1="-6" x2="41" y2="-1"/>
+                                <line x1="54" y1="-6" x2="54" y2="-1"/>
                             </g>
                         </g>
                     </g>

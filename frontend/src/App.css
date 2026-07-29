@@ -8,6 +8,8 @@
 .app {
     --wails-draggable: drag;
     min-height: 100vh;
+    /* The stomping leg reaches past the scene, so clip it at the window edge. */
+    overflow: hidden;
     padding: 20px 22px 26px;
     display: flex;
     flex-direction: column;
@@ -39,8 +41,12 @@
 
 .app__header {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.app__cycles {
+    margin-left: auto;
 }
 
 .app__phase {
@@ -52,6 +58,62 @@
 .app__cycles {
     font-size: 0.8rem;
     color: #9ca3af;
+}
+
+.gear {
+    --wails-draggable: no-drag;
+    position: relative;
+}
+
+.gear__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: var(--accent-work);
+    color: #fee2e2;
+    cursor: pointer;
+    transition: transform 0.25s ease, filter 0.15s ease;
+}
+
+.gear__button:hover {
+    filter: brightness(1.15);
+}
+
+.gear__button--open {
+    transform: rotate(60deg);
+}
+
+.gear__icon {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+.gear__panel {
+    position: absolute;
+    top: 32px;
+    right: 0;
+    z-index: 20;
+    width: 220px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    border: 1px solid #374151;
+    border-radius: 10px;
+    background: #1b2434;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+    text-align: left;
+}
+
+.gear__divider {
+    height: 1px;
+    background: #374151;
 }
 
 .clock {
@@ -246,34 +308,99 @@
     animation: squeeze-shake 0.42s ease-out 0.44s both;
 }
 
-.drip__skin {
-    fill: #f2c19a;
-    stroke: #cf9160;
-    stroke-width: 2;
-    stroke-linejoin: round;
-}
-
-.drip__sleeve {
-    fill: #475569;
-    stroke: #334155;
+.drip__trouser {
+    fill: #9a6a33;
+    stroke: #6d4820;
     stroke-width: 2;
 }
 
-.drip__knuckles {
+.drip__stitching {
+    stroke: #e0b352;
+    stroke-width: 1.4;
+    opacity: 0.75;
+}
+
+.drip__cuff {
+    fill: #7d5426;
+    stroke: #5c3c1b;
+    stroke-width: 2;
+}
+
+.drip__sock {
+    fill: #f4f4f5;
+    stroke: #d4d4d8;
+    stroke-width: 2;
+}
+
+.drip__shoe {
+    fill: #1c1c1f;
+    stroke: #0b0b0d;
+    stroke-width: 2;
+}
+
+.drip__shoe-toe {
+    fill: #131316;
+}
+
+.drip__collar {
     fill: none;
-    stroke: #cf9160;
+    stroke: #f4f4f5;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+}
+
+/* The stripe carries a thin dark outline, like the stitched original. */
+.drip__stripe-shadow {
+    fill: none;
+    stroke: #0b0b0d;
+    stroke-width: 12;
+    stroke-linecap: round;
+}
+
+.drip__stripe {
+    fill: none;
+    stroke: #fafafa;
+    stroke-width: 9;
+    stroke-linecap: round;
+}
+
+.drip__laces {
+    stroke: #f4f4f5;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+}
+
+.drip__foxing {
+    fill: #f1f1f3;
+    stroke: #c7c7cc;
+    stroke-width: 2;
+}
+
+.drip__foxing-line {
+    fill: none;
+    stroke: #c7c7cc;
+    stroke-width: 1.4;
+}
+
+.drip__welt {
+    fill: none;
+    stroke: #1c1c1f;
+    stroke-width: 2.4;
+}
+
+.drip__label {
+    fill: #e11d48;
+}
+
+.drip__waffle {
+    stroke: #b9b9bf;
     stroke-width: 1.8;
     stroke-linecap: round;
-    opacity: 0.65;
 }
 
-.drip__fingers {
-    transform-origin: 100px -48px;
-    animation: squeeze-fingers 2.6s ease-in-out both;
-}
-
-.drip__hand {
-    animation: squeeze-hand 2.6s cubic-bezier(0.6, 0, 0.2, 1) both;
+.drip__foot {
+    transform-origin: 100px -60px;
+    animation: squeeze-stomp 2.6s cubic-bezier(0.6, 0, 0.2, 1) both;
 }
 
 .drip--squeeze .drip__tomato {
@@ -306,54 +433,38 @@
     animation: squeeze-puddle 1s ease-out 0.5s both;
 }
 
-@keyframes squeeze-hand {
+@keyframes squeeze-stomp {
     0% {
-        transform: translateY(-210px);
+        transform: translateY(-250px) rotate(-14deg);
         opacity: 0;
     }
     6% {
         opacity: 1;
     }
     12% {
-        transform: translateY(-96px);
+        transform: translateY(-120px) rotate(-12deg);
     }
-    /* Short anticipation before it slams down. */
+    /* Short anticipation before the boot comes down. */
     15% {
-        transform: translateY(-112px);
+        transform: translateY(-140px) rotate(-16deg);
     }
     23% {
-        transform: translateY(58px);
+        transform: translateY(112px) rotate(2deg);
     }
     27% {
-        transform: translateY(50px);
+        transform: translateY(104px) rotate(0deg);
     }
     46% {
-        transform: translateY(54px);
+        transform: translateY(108px) rotate(0deg);
     }
     62% {
-        transform: translateY(-120px);
+        transform: translateY(-130px) rotate(-10deg);
         opacity: 1;
     }
     72%,
     100% {
-        transform: translateY(-210px);
+        transform: translateY(-250px) rotate(-14deg);
         opacity: 0;
-    }
-}
-
-@keyframes squeeze-fingers {
-    0%,
-    18% {
-        transform: scaleY(1);
-    }
-    24% {
-        transform: scaleY(0.72);
-    }
-    46% {
-        transform: scaleY(0.76);
-    }
-    100% {
-        transform: scaleY(1);
     }
 }
 
@@ -476,8 +587,7 @@
     .drip--squeeze .drip__tomato,
     .drip--squeeze .drip__leaves,
     .drip--squeeze .drip__svg,
-    .drip__hand,
-    .drip__fingers,
+    .drip__foot,
     .drip__stream,
     .drip__splatter circle,
     .drip__puddle {
@@ -883,52 +993,6 @@
     font-size: 0.85rem;
     color: #d1d5db;
     cursor: pointer;
-}
-
-.settings {
-    --wails-draggable: no-drag;
-    margin-top: auto;
-    border: 1px solid #374151;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.settings__header {
-    width: 100%;
-    padding: 10px 12px;
-    border: none;
-    background: #1f2937;
-    color: #f9fafb;
-    font-size: 0.9rem;
-    font-weight: 600;
-    text-align: left;
-    cursor: pointer;
-}
-
-.settings__body {
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.field {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    font-size: 0.85rem;
-    color: #d1d5db;
-}
-
-.field input {
-    width: 88px;
-    padding: 6px 8px;
-    border: 1px solid #4b5563;
-    border-radius: 6px;
-    background: #0f172a;
-    color: #f9fafb;
-    font-size: 0.85rem;
 }
 
 .settings__hint {

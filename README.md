@@ -154,6 +154,10 @@ Unter WSL2 daher am besten die Windows-Exe testen (siehe
 
 ## Einstellungen
 
+Die Einstellungen stecken hinter dem roten Zahnrad oben rechts: Dauern,
+Long-Break-Intervall, Always on Top und Sound. Die Restzeit lässt sich auch
+direkt anklicken und im Uhrenfeld überschreiben.
+
 | Einstellung | Default | Bedeutung |
 | --- | --- | --- |
 | `workSeconds` | 1500 | Dauer einer Arbeitsphase (Sekunden) |
@@ -171,6 +175,15 @@ Alle Zeitwerte werden im Backend validiert (1 Sekunde bis 600 Minuten).
 
 Ältere `settings.json` mit `workMinutes`/`shortBreakMinutes`/`longBreakMinutes`
 werden beim Laden automatisch auf Sekunden migriert.
+
+## Icon
+
+App-, Taskleisten- und Tray-Icon sind eine gerenderte Tomate. Die Dateien
+`build/appicon.png` und `build/windows/icon.ico` werden erzeugt von:
+
+```bash
+go run ./tools/icongen build/appicon.png build/windows/icon.ico
+```
 
 ## Projektstruktur
 
