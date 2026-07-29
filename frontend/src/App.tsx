@@ -115,6 +115,29 @@ function App() {
         };
     }, []);
 
+    const settingsRef = useRef<HTMLDivElement>(null);
+    useEffect(() => {
+        if (!settingsOpen) {
+            return;
+        }
+        const onPointerDown = (event: PointerEvent) => {
+            if (!settingsRef.current?.contains(event.target as Node)) {
+                setSettingsOpen(false);
+            }
+        };
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setSettingsOpen(false);
+            }
+        };
+        window.addEventListener("pointerdown", onPointerDown);
+        window.addEventListener("keydown", onKeyDown);
+        return () => {
+            window.removeEventListener("pointerdown", onPointerDown);
+            window.removeEventListener("keydown", onKeyDown);
+        };
+    }, [settingsOpen]);
+
     const startClockEdit = () => {
         if (!state) {
             return;
@@ -219,6 +242,68 @@ function App() {
             <header className="app__header">
                 <span className="app__phase">{state.phaseLabel}</span>
                 <span className="app__cycles">Completed: {state.completedWork}</span>
+
+                <div className="gear" ref={settingsRef}>
+                    <button
+                        className={`gear__button${settingsOpen ? " gear__button--open" : ""}`}
+                        onClick={() => setSettingsOpen((open) => !open)}
+                        aria-label="Settings"
+                        aria-expanded={settingsOpen}
+                        title="Settings"
+                    >
+                        <svg viewBox="0 0 24 24" className="gear__icon" aria-hidden="true">
+                            <path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8Zm8.4 3.4c0 .5 0 1-.1 1.4l2 1.5c.2.2.3.5.1.7l-1.9 3.3c-.1.2-.4.3-.7.2l-2.3-.9c-.7.6-1.5 1-2.4 1.3l-.4 2.4c0 .3-.3.4-.5.4h-3.8c-.3 0-.5-.1-.5-.4l-.4-2.4a7.6 7.6 0 0 1-2.4-1.3l-2.3.9c-.3.1-.6 0-.7-.2L1.7 15.6c-.2-.2-.1-.5.1-.7l2-1.5a8 8 0 0 1 0-2.8l-2-1.5c-.2-.2-.3-.5-.1-.7l1.9-3.3c.1-.2.4-.3.7-.2l2.3.9c.7-.6 1.5-1 2.4-1.3l.4-2.4c0-.3.2-.4.5-.4h3.8c.2 0 .5.1.5.4l.4 2.4c.9.3 1.7.7 2.4 1.3l2.3-.9c.3-.1.6 0 .7.2l1.9 3.3c.2.2.1.5-.1.7l-2 1.5c.1.4.1.9.1 1.4Z"/>
+                        </svg>
+                    </button>
+
+                    {settingsOpen && (
+                        <div className="gear__panel">
+                            <label className="field">
+                                <span>{DURATION_LABELS.workSeconds}</span>
+                                <input type="text" placeholder="25:00" value={form.workSeconds} onChange={updateField("workSeconds")}/>
+                            </label>
+                            <label className="field">
+                                <span>{DURATION_LABELS.shortBreakSeconds}</span>
+                                <input type="text" placeholder="5:00" value={form.shortBreakSeconds} onChange={updateField("shortBreakSeconds")}/>
+                            </label>
+                            <label className="field">
+                                <span>{DURATION_LABELS.longBreakSeconds}</span>
+                                <input type="text" placeholder="15:00" value={form.longBreakSeconds} onChange={updateField("longBreakSeconds")}/>
+                            </label>
+                            <label className="field">
+                                <span>Long break every</span>
+                                <input type="number" min={1} max={600} value={form.longBreakEvery} onChange={updateField("longBreakEvery")}/>
+                            </label>
+
+                            <p className="settings__hint">mm:ss, "45s" or plain minutes (e.g. 0:30).</p>
+
+                            <button className="btn btn--primary" onClick={saveSettings}>
+                                Save
+                            </button>
+
+                            <div className="gear__divider"/>
+
+                            <label className="toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={state.settings.alwaysOnTop}
+                                    onChange={(e) => SetAlwaysOnTop(e.target.checked).then((s) => applyState(main.State.createFrom(s)))}
+                                />
+                                Always on Top
+                            </label>
+                            <label className="toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={state.settings.soundEnabled}
+                                    onChange={(e) => SetSoundEnabled(e.target.checked).then((s) => applyState(main.State.createFrom(s)))}
+                                />
+                                Sound
+                            </label>
+
+                            {error && <p className="settings__error">{error}</p>}
+                        </div>
+                    )}
+                </div>
             </header>
 
             <div className="clock">
@@ -286,59 +371,6 @@ function App() {
                 </button>
             </div>
 
-            <div className="toggles">
-                <label className="toggle">
-                    <input
-                        type="checkbox"
-                        checked={state.settings.alwaysOnTop}
-                        onChange={(e) => SetAlwaysOnTop(e.target.checked).then((s) => applyState(main.State.createFrom(s)))}
-                    />
-                    Always on Top
-                </label>
-                <label className="toggle">
-                    <input
-                        type="checkbox"
-                        checked={state.settings.soundEnabled}
-                        onChange={(e) => SetSoundEnabled(e.target.checked).then((s) => applyState(main.State.createFrom(s)))}
-                    />
-                    Sound
-                </label>
-            </div>
-
-            <section className="settings">
-                <button className="settings__header" onClick={() => setSettingsOpen((open) => !open)}>
-                    Settings {settingsOpen ? "▲" : "▼"}
-                </button>
-
-                {settingsOpen && (
-                    <div className="settings__body">
-                        <label className="field">
-                            <span>{DURATION_LABELS.workSeconds}</span>
-                            <input type="text" inputMode="text" placeholder="25:00" value={form.workSeconds} onChange={updateField("workSeconds")}/>
-                        </label>
-                        <label className="field">
-                            <span>{DURATION_LABELS.shortBreakSeconds}</span>
-                            <input type="text" inputMode="text" placeholder="5:00" value={form.shortBreakSeconds} onChange={updateField("shortBreakSeconds")}/>
-                        </label>
-                        <label className="field">
-                            <span>{DURATION_LABELS.longBreakSeconds}</span>
-                            <input type="text" inputMode="text" placeholder="15:00" value={form.longBreakSeconds} onChange={updateField("longBreakSeconds")}/>
-                        </label>
-                        <label className="field">
-                            <span>Long break every</span>
-                            <input type="number" min={1} max={600} value={form.longBreakEvery} onChange={updateField("longBreakEvery")}/>
-                        </label>
-
-                        <p className="settings__hint">mm:ss, "45s" or plain minutes (e.g. 0:30 for half a minute).</p>
-
-                        {error && <p className="settings__error">{error}</p>}
-
-                        <button className="btn btn--primary" onClick={saveSettings}>
-                            Save
-                        </button>
-                    </div>
-                )}
-            </section>
         </div>
     );
 }
