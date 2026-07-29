@@ -3,6 +3,7 @@
   "packages": {
     ".": {
       "release-type": "simple",
+      "release-as": "0.1.0",
       "package-name": "t1mat0",
       "changelog-path": "CHANGELOG.md",
       "include-v-in-tag": true,
