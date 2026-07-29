@@ -1,0 +1,945 @@
+:root {
+    --accent-work: #ef4444;
+    --accent-short: #22c55e;
+    --accent-long: #3b82f6;
+    --accent: var(--accent-work);
+}
+
+.app {
+    --wails-draggable: drag;
+    min-height: 100vh;
+    padding: 20px 22px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-sizing: border-box;
+    color: #f9fafb;
+    background: #111827;
+    font-family: "Nunito", system-ui, -apple-system, sans-serif;
+    text-align: left;
+}
+
+.app--work {
+    --accent: var(--accent-work);
+}
+
+.app--shortBreak {
+    --accent: var(--accent-short);
+}
+
+.app--longBreak {
+    --accent: var(--accent-long);
+}
+
+.app--loading {
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+}
+
+.app__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.app__phase {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.app__cycles {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.clock {
+    --wails-draggable: no-drag;
+    text-align: center;
+}
+
+.clock__value {
+    font-size: 3.6rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+
+.clock__value--button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    text-align: center;
+    cursor: text;
+    transition: background 0.15s ease;
+}
+
+.clock__value--button:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.clock__input {
+    width: 100%;
+    padding: 0;
+    border: none;
+    border-bottom: 2px solid var(--accent);
+    border-radius: 0;
+    background: transparent;
+    color: #f9fafb;
+    font-family: inherit;
+    text-align: center;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.clock__input--error {
+    border-bottom-color: #f87171;
+    color: #fca5a5;
+}
+
+.clock__status {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+}
+
+.clock__progress {
+    margin-top: 14px;
+    height: 6px;
+    border-radius: 999px;
+    background: #1f2937;
+    overflow: hidden;
+}
+
+.clock__progress-bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s linear;
+}
+
+.drip {
+    --wails-draggable: no-drag;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drip__svg {
+    color: var(--accent-work);
+    width: 100%;
+    height: 100%;
+    max-height: 250px;
+    overflow: visible;
+}
+
+.drip__shell {
+    fill: currentColor;
+    opacity: 0.14;
+}
+
+.drip__outline {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    opacity: 0.55;
+}
+
+.drip__shine {
+    fill: #ffffff;
+    opacity: 0.16;
+}
+
+.drip__leaves {
+    fill: #4d7c3f;
+}
+
+.drip__juice {
+    fill: currentColor;
+    transition: transform 0.45s cubic-bezier(0.33, 1, 0.68, 1);
+    will-change: transform;
+}
+
+.drip__surface {
+    fill: #ffffff;
+    opacity: 0.25;
+}
+
+.drip__glass-body {
+    fill: #ffffff;
+    opacity: 0.05;
+}
+
+.drip__glass-outline {
+    fill: none;
+    stroke: #cbd5e1;
+    stroke-width: 2;
+    stroke-linejoin: round;
+    opacity: 0.45;
+}
+
+.drip__glass-shine {
+    stroke: #ffffff;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    opacity: 0.12;
+}
+
+.drip__drop {
+    fill: currentColor;
+    opacity: 0;
+    /* The path starts at its own origin, so scaling swells the drop downwards
+       out of the tomato instead of moving it. */
+    transform-origin: 0 0;
+    animation: drip-fall 0.95s ease-in 1 both;
+}
+
+.drip--full .drip__glass-outline {
+    opacity: 0.8;
+}
+
+@keyframes drip-fall {
+    /* First half: the drop swells while the juice level above is still
+       animating. Second half: it lets go and falls into the glass. */
+    0% {
+        transform: translateY(-4px) scale(0.1);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.95;
+    }
+    45% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    55% {
+        transform: translateY(3px) scale(0.95, 1.1);
+        opacity: 1;
+    }
+    88% {
+        transform: translateY(50px) scale(0.9, 1.2);
+        opacity: 0.95;
+    }
+    100% {
+        transform: translateY(62px) scale(0.8, 0.45);
+        opacity: 0;
+    }
+}
+
+/* --- Skip squeezes the tomato ------------------------------------------ */
+
+.drip--squeeze .drip__juice {
+    /* Wait for the hand to hit, then dump everything into the glass at once. */
+    transition: transform 0.22s cubic-bezier(0.6, 0, 0.9, 0.2) 0.46s;
+}
+
+.drip--squeeze .drip__svg {
+    animation: squeeze-shake 0.42s ease-out 0.44s both;
+}
+
+.drip__skin {
+    fill: #f2c19a;
+    stroke: #cf9160;
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+
+.drip__sleeve {
+    fill: #475569;
+    stroke: #334155;
+    stroke-width: 2;
+}
+
+.drip__knuckles {
+    fill: none;
+    stroke: #cf9160;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    opacity: 0.65;
+}
+
+.drip__fingers {
+    transform-origin: 100px -48px;
+    animation: squeeze-fingers 2.6s ease-in-out both;
+}
+
+.drip__hand {
+    animation: squeeze-hand 2.6s cubic-bezier(0.6, 0, 0.2, 1) both;
+}
+
+.drip--squeeze .drip__tomato {
+    transform-origin: 100px 115px;
+    animation: squeeze-tomato 2.6s cubic-bezier(0.5, 0, 0.3, 1) both;
+}
+
+.drip--squeeze .drip__leaves {
+    transform-origin: 100px 28px;
+    animation: squeeze-leaves 2.6s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+
+.drip__stream {
+    fill: currentColor;
+    opacity: 0;
+    transform-origin: 100px 112px;
+    animation: squeeze-stream 2.6s ease-out both;
+}
+
+.drip__splatter circle {
+    fill: currentColor;
+    opacity: 0;
+    animation: squeeze-splat 0.75s cubic-bezier(0.2, 0.7, 0.4, 1) 0.46s both;
+}
+
+.drip__puddle {
+    fill: currentColor;
+    opacity: 0;
+    transform-origin: 112px 246px;
+    animation: squeeze-puddle 1s ease-out 0.5s both;
+}
+
+@keyframes squeeze-hand {
+    0% {
+        transform: translateY(-210px);
+        opacity: 0;
+    }
+    6% {
+        opacity: 1;
+    }
+    12% {
+        transform: translateY(-96px);
+    }
+    /* Short anticipation before it slams down. */
+    15% {
+        transform: translateY(-112px);
+    }
+    23% {
+        transform: translateY(58px);
+    }
+    27% {
+        transform: translateY(50px);
+    }
+    46% {
+        transform: translateY(54px);
+    }
+    62% {
+        transform: translateY(-120px);
+        opacity: 1;
+    }
+    72%,
+    100% {
+        transform: translateY(-210px);
+        opacity: 0;
+    }
+}
+
+@keyframes squeeze-fingers {
+    0%,
+    18% {
+        transform: scaleY(1);
+    }
+    24% {
+        transform: scaleY(0.72);
+    }
+    46% {
+        transform: scaleY(0.76);
+    }
+    100% {
+        transform: scaleY(1);
+    }
+}
+
+@keyframes squeeze-tomato {
+    0%,
+    17% {
+        transform: scale(1, 1);
+    }
+    /* Bulges sideways just before it gives in. */
+    20% {
+        transform: scale(1.12, 0.82);
+    }
+    23% {
+        transform: scale(1.46, 0.24);
+    }
+    26% {
+        transform: scale(1.32, 0.16);
+    }
+    30% {
+        transform: scale(1.38, 0.13);
+    }
+    100% {
+        transform: scale(1.36, 0.12);
+    }
+}
+
+@keyframes squeeze-leaves {
+    0%,
+    20% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    26% {
+        transform: translate(10px, 26px) rotate(-34deg);
+    }
+    40% {
+        transform: translate(38px, 150px) rotate(28deg);
+    }
+    50% {
+        transform: translate(54px, 216px) rotate(62deg);
+    }
+    56% {
+        transform: translate(52px, 208px) rotate(50deg);
+    }
+    62%,
+    100% {
+        transform: translate(53px, 213px) rotate(55deg);
+    }
+}
+
+@keyframes squeeze-stream {
+    0%,
+    20% {
+        transform: scaleY(0);
+        opacity: 0;
+    }
+    24% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+    40% {
+        transform: scaleY(1);
+        opacity: 0.9;
+    }
+    52%,
+    100% {
+        transform: scaleY(1);
+        opacity: 0;
+    }
+}
+
+@keyframes squeeze-shake {
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+    20% {
+        transform: translate(-4px, 3px);
+    }
+    40% {
+        transform: translate(4px, -2px);
+    }
+    60% {
+        transform: translate(-3px, 1px);
+    }
+    80% {
+        transform: translate(2px, -1px);
+    }
+}
+
+@keyframes squeeze-splat {
+    0% {
+        transform: translate(0, 0) scale(0.3);
+        opacity: 0;
+    }
+    12% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--splat-x), var(--splat-y)) scale(0.8);
+        opacity: 0;
+    }
+}
+
+@keyframes squeeze-puddle {
+    0% {
+        transform: scale(0.15);
+        opacity: 0;
+    }
+    55% {
+        transform: scale(1.12);
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .drip--squeeze .drip__tomato,
+    .drip--squeeze .drip__leaves,
+    .drip--squeeze .drip__svg,
+    .drip__hand,
+    .drip__fingers,
+    .drip__stream,
+    .drip__splatter circle,
+    .drip__puddle {
+        animation-duration: 0.01s;
+    }
+
+    .drip__juice {
+        transition: none;
+    }
+
+    .drip__drop {
+        animation: none;
+    }
+}
+
+/* --- Break scene ------------------------------------------------------- */
+
+.beach {
+    --wails-draggable: no-drag;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.beach__svg {
+    width: 100%;
+    height: 100%;
+    max-height: 250px;
+    overflow: visible;
+}
+
+.beach__sun {
+    fill: url(#beach-sun);
+}
+
+.beach__sun-glow {
+    fill: #fbbf24;
+    opacity: 0.12;
+}
+
+.beach__sun-group {
+    transition: transform 0.8s cubic-bezier(0.33, 1, 0.68, 1);
+    will-change: transform;
+}
+
+.beach__rays {
+    stroke: #fcd34d;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    opacity: 0.55;
+}
+
+.beach--running .beach__rays {
+    /* The rays sit around the local origin, which is the sun centre after the
+       parent group is translated — rotating around it keeps them in place. */
+    transform-origin: 0 0;
+    animation: beach-rays 14s ease-in-out infinite;
+}
+
+.beach__bird {
+    fill: none;
+    stroke: #cbd5e1;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    opacity: 0.45;
+}
+
+.beach__bird--a {
+    transform: translate(46px, 66px);
+}
+
+.beach__bird--b {
+    transform: translate(78px, 54px);
+}
+
+.beach--running .beach__bird--a {
+    animation: beach-bird-a 14s ease-in-out infinite;
+}
+
+.beach--running .beach__bird--b {
+    animation: beach-bird-b 18s ease-in-out infinite;
+}
+
+.beach__sand {
+    fill: url(#beach-sand);
+}
+
+.beach__sand-rim {
+    fill: none;
+    stroke: #fde9c0;
+    stroke-width: 1.5;
+    opacity: 0.35;
+}
+
+.beach__water {
+    fill: url(#beach-water);
+}
+
+.beach__water-rim {
+    fill: none;
+    stroke: #bae6fd;
+    stroke-width: 1.5;
+    opacity: 0.5;
+}
+
+.beach__wave {
+    fill: none;
+    stroke: #e0f2fe;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    opacity: 0.55;
+}
+
+.beach--running .beach__wave {
+    animation: beach-wave 4.5s ease-in-out infinite;
+}
+
+.beach__fish-body {
+    fill: #fb923c;
+}
+
+.beach__fish-tail,
+.beach__fish-fin {
+    fill: #f97316;
+}
+
+.beach__fish-eye {
+    fill: #1f2937;
+}
+
+.beach__fish-jump {
+    opacity: 0;
+}
+
+.beach--running .beach__fish-jump {
+    animation: beach-fish 5.2s ease-in-out infinite;
+}
+
+.beach__flopper {
+    opacity: 0;
+}
+
+.beach--running .beach__flopper--out {
+    animation: beach-flop-out 0.9s ease-out both;
+}
+
+.beach--running .beach__flopper--flop {
+    opacity: 1;
+    animation: beach-flop-wiggle 0.42s ease-in-out infinite;
+}
+
+.beach--running .beach__flopper--back {
+    animation: beach-flop-back 0.9s ease-in both;
+}
+
+@keyframes beach-flop-out {
+    0% {
+        transform: translate(0, 0) rotate(-50deg);
+        opacity: 0;
+    }
+    12% {
+        opacity: 1;
+    }
+    50% {
+        transform: translate(calc(var(--flop-x) / 2), calc(var(--flop-y) - 44px)) rotate(0deg);
+        opacity: 1;
+    }
+    88% {
+        transform: translate(calc(var(--flop-x) * 0.92), calc(var(--flop-y) + 2px)) rotate(24deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--flop-x), var(--flop-y)) rotate(8deg);
+        opacity: 1;
+    }
+}
+
+@keyframes beach-flop-wiggle {
+    0%,
+    100% {
+        transform: translate(var(--flop-x), var(--flop-y)) rotate(-16deg);
+    }
+    50% {
+        transform: translate(var(--flop-x), calc(var(--flop-y) - 4px)) rotate(18deg);
+    }
+}
+
+@keyframes beach-flop-back {
+    0% {
+        transform: translate(var(--flop-x), var(--flop-y)) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(calc(var(--flop-x) / 2), calc(var(--flop-y) - 50px)) rotate(-35deg);
+        opacity: 1;
+    }
+    92% {
+        transform: translate(0, 4px) rotate(-110deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(0, 8px) rotate(-125deg);
+        opacity: 0;
+    }
+}
+
+.beach__glass-shadow {
+    fill: #a97c42;
+    opacity: 0.3;
+}
+
+.beach__glass-body {
+    fill: #ffffff;
+    opacity: 0.18;
+}
+
+.beach__glass-outline {
+    fill: none;
+    stroke: #f8fafc;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.75;
+}
+
+.beach__drink {
+    fill: #f472b6;
+    transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+    will-change: transform;
+}
+
+.beach__straw {
+    stroke: #f8fafc;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    opacity: 0.85;
+}
+
+.beach__lemon {
+    fill: #fde047;
+}
+
+.beach__lemon-peel {
+    fill: #facc15;
+}
+
+.beach__umbrella {
+    fill: #f43f5e;
+}
+
+.beach__umbrella-stick {
+    stroke: #fef3c7;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+}
+
+.beach__starfish {
+    fill: #fb7185;
+    opacity: 0.9;
+}
+
+.beach__shells {
+    fill: #fff7ed;
+    opacity: 0.75;
+}
+
+@keyframes beach-rays {
+    0%,
+    100% {
+        transform: rotate(-7deg);
+        opacity: 0.45;
+    }
+    50% {
+        transform: rotate(7deg);
+        opacity: 0.65;
+    }
+}
+
+@keyframes beach-bird-a {
+    0% {
+        transform: translate(20px, 74px);
+    }
+    50% {
+        transform: translate(80px, 58px);
+    }
+    100% {
+        transform: translate(140px, 74px);
+    }
+}
+
+@keyframes beach-bird-b {
+    0% {
+        transform: translate(140px, 50px);
+    }
+    50% {
+        transform: translate(80px, 40px);
+    }
+    100% {
+        transform: translate(20px, 50px);
+    }
+}
+
+@keyframes beach-wave {
+    0%,
+    100% {
+        transform: translateX(-6px);
+    }
+    50% {
+        transform: translateX(10px);
+    }
+}
+
+@keyframes beach-fish {
+    0%,
+    62% {
+        transform: translate(0, 8px) rotate(-40deg);
+        opacity: 0;
+    }
+    68% {
+        opacity: 1;
+    }
+    80% {
+        transform: translate(6px, -34px) rotate(0deg);
+        opacity: 1;
+    }
+    94% {
+        transform: translate(16px, 6px) rotate(48deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(18px, 12px) rotate(56deg);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .beach__drink,
+    .beach__sun-group {
+        transition: none;
+    }
+
+    .beach--running .beach__rays,
+    .beach--running .beach__bird--a,
+    .beach--running .beach__bird--b,
+    .beach--running .beach__wave,
+    .beach--running .beach__fish-jump,
+    .beach--running .beach__flopper--out,
+    .beach--running .beach__flopper--flop,
+    .beach--running .beach__flopper--back {
+        animation: none;
+    }
+
+    .beach--running .beach__fish-jump {
+        opacity: 1;
+    }
+}
+
+.actions {
+    --wails-draggable: no-drag;
+    display: flex;
+    gap: 8px;
+}
+
+.btn {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid #374151;
+    border-radius: 10px;
+    background: #1f2937;
+    color: #f9fafb;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.btn:hover {
+    background: #374151;
+}
+
+.btn--primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0b1120;
+}
+
+.btn--primary:hover {
+    filter: brightness(1.1);
+}
+
+.toggles {
+    --wails-draggable: no-drag;
+    display: flex;
+    gap: 16px;
+}
+
+.toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: #d1d5db;
+    cursor: pointer;
+}
+
+.settings {
+    --wails-draggable: no-drag;
+    margin-top: auto;
+    border: 1px solid #374151;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.settings__header {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    background: #1f2937;
+    color: #f9fafb;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+}
+
+.settings__body {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #d1d5db;
+}
+
+.field input {
+    width: 88px;
+    padding: 6px 8px;
+    border: 1px solid #4b5563;
+    border-radius: 6px;
+    background: #0f172a;
+    color: #f9fafb;
+    font-size: 0.85rem;
+}
+
+.settings__hint {
+    margin: 0;
+    color: #9ca3af;
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+.settings__error {
+    margin: 0;
+    color: #fca5a5;
+    font-size: 0.8rem;
+}
