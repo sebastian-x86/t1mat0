@@ -30,6 +30,14 @@ export function SetCurrentDuration(arg1) {
   return window['go']['main']['App']['SetCurrentDuration'](arg1);
 }
 
+export function SetLanguage(arg1) {
+  return window['go']['main']['App']['SetLanguage'](arg1);
+}
+
+export function SetSingleKeyShortcuts(arg1) {
+  return window['go']['main']['App']['SetSingleKeyShortcuts'](arg1);
+}
+
 export function SetSoundEnabled(arg1) {
   return window['go']['main']['App']['SetSoundEnabled'](arg1);
 }

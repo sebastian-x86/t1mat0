@@ -28,8 +28,10 @@ type App struct {
 
 // NewApp creates the application with persisted settings applied.
 func NewApp() *App {
+	timer := NewTimer(LoadSettings())
+	timer.SetHarvest(LoadHarvest())
 	return &App{
-		timer:         NewTimer(LoadSettings()),
+		timer:         timer,
 		done:          make(chan struct{}),
 		windowVisible: true,
 	}
@@ -92,6 +94,9 @@ func (a *App) runLoop() {
 			if result.PhaseChanged {
 				a.announcePhase(result.State, result.FinishedPhase)
 			}
+			if result.Harvested {
+				_ = SaveHarvest(result.State.Harvest)
+			}
 			a.publish(result.State)
 		}
 	}
@@ -114,8 +119,8 @@ func (a *App) announcePhase(state State, finished Phase) {
 	if !a.notifyDisabled {
 		err := wailsRuntime.SendNotification(a.ctx, wailsRuntime.NotificationOptions{
 			ID:    "pomodoro-phase",
-			Title: PhaseLabel(finished) + " finished",
-			Body:  "Next up: " + state.PhaseLabel + " (" + state.FormattedRemaining + ")",
+			Title: PhaseLabelIn(state.Language, finished) + " " + T(state.Language, "notify.finished"),
+			Body:  T(state.Language, "notify.next") + ": " + state.PhaseLabel + " (" + state.FormattedRemaining + ")",
 		})
 		if err != nil {
 			wailsRuntime.LogWarningf(a.ctx, "failed to send notification: %v", err)
@@ -156,6 +161,7 @@ func (a *App) Toggle() State {
 // Reset returns the timer to a fresh work phase.
 func (a *App) Reset() State {
 	state := a.timer.Reset()
+	_ = SaveHarvest(state.Harvest)
 	a.publish(state)
 	return state
 }
@@ -164,6 +170,10 @@ func (a *App) Reset() State {
 func (a *App) Skip() State {
 	state, finished := a.timer.Skip()
 	a.announcePhase(state, finished)
+	// A skipped work phase breaks the streak; persist that right away.
+	if finished == PhaseWork {
+		_ = SaveHarvest(state.Harvest)
+	}
 	a.publish(state)
 	return state
 }
@@ -214,6 +224,22 @@ func (a *App) SetAlwaysOnTop(enabled bool) State {
 // SetSoundEnabled toggles the phase change sound.
 func (a *App) SetSoundEnabled(enabled bool) State {
 	state := a.timer.SetSoundEnabled(enabled)
+	_ = SaveSettings(state.Settings)
+	a.publish(state)
+	return state
+}
+
+// SetLanguage switches the UI language.
+func (a *App) SetLanguage(language string) State {
+	state := a.timer.SetLanguage(language)
+	_ = SaveSettings(state.Settings)
+	a.publish(state)
+	return state
+}
+
+// SetSingleKeyShortcuts toggles the letter based keyboard shortcuts.
+func (a *App) SetSingleKeyShortcuts(enabled bool) State {
+	state := a.timer.SetSingleKeyShortcuts(enabled)
 	_ = SaveSettings(state.Settings)
 	a.publish(state)
 	return state

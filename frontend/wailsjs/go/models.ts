@@ -1,5 +1,21 @@
 export namespace main {
 	
+	export class Harvest {
+	    tomatoes: number;
+	    streak: number;
+	    bestStreak: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new Harvest(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.tomatoes = source["tomatoes"];
+	        this.streak = source["streak"];
+	        this.bestStreak = source["bestStreak"];
+	    }
+	}
 	export class Settings {
 	    workSeconds: number;
 	    shortBreakSeconds: number;
@@ -8,6 +24,8 @@ export namespace main {
 	    alwaysOnTop: boolean;
 	    soundEnabled: boolean;
 	    autoStartNext: boolean;
+	    language: string;
+	    singleKeyShortcuts: boolean;
 	
 	    static createFrom(source: any = {}) {
 	        return new Settings(source);
@@ -22,6 +40,8 @@ export namespace main {
 	        this.alwaysOnTop = source["alwaysOnTop"];
 	        this.soundEnabled = source["soundEnabled"];
 	        this.autoStartNext = source["autoStartNext"];
+	        this.language = source["language"];
+	        this.singleKeyShortcuts = source["singleKeyShortcuts"];
 	    }
 	}
 	export class State {
@@ -33,6 +53,8 @@ export namespace main {
 	    totalSeconds: number;
 	    formattedRemaining: string;
 	    settings: Settings;
+	    harvest: Harvest;
+	    language: string;
 	
 	    static createFrom(source: any = {}) {
 	        return new State(source);
@@ -48,6 +70,8 @@ export namespace main {
 	        this.totalSeconds = source["totalSeconds"];
 	        this.formattedRemaining = source["formattedRemaining"];
 	        this.settings = this.convertValues(source["settings"], Settings);
+	        this.harvest = this.convertValues(source["harvest"], Harvest);
+	        this.language = source["language"];
 	    }
 	
 		convertValues(a: any, classs: any, asMap: boolean = false): any {

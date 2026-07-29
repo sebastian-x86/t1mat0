@@ -1,6 +1,12 @@
 # t1mat0 — Pomodoro Timer
 
-Desktop Pomodoro Timer mit Tray, Desktop-Benachrichtigungen, Always-on-Top und Sound.
+**t1mat0** ist ein kleiner Desktop-Pomodoro-Timer, der die verbleibende Zeit
+nicht nur als Zahl zeigt, sondern als Tomate, die sich langsam in ein Glas
+entleert — Tray, Desktop-Benachrichtigungen, Always-on-Top und Sound inklusive.
+
+Ausgesprochen wird der Name wie das englische *tomato*: **[tə-ˈmaa-toh]**
+(IPA: `/təˈmɑːtəʊ/`), also „te-MAA-toh" — die `1` und die `0` sind nur Leetspeak
+für `i` und `o`. Die Binary heißt kurz `t1m` („tim").
 
 In der Mitte des Fensters läuft eine Tomate über die Dauer der Phase langsam
 leer und tropft in ein Glas darunter, das sich im gleichen Maß füllt — die
@@ -8,7 +14,7 @@ Restzeit ist damit auch ohne Blick auf die Uhr ablesbar. Die Farbe folgt der
 aktuellen Phase (rot = Arbeit, grün = kurze Pause, blau = lange Pause).
 
 Der Name ist eine Kreuzung aus *timer* und *tomato* — die Tomate ist das
-Namensgebende der Pomodoro-Technik. Die Binary heißt kurz `t1m`.
+Namensgebende der Pomodoro-Technik.
 
 **Stack:** Go (Timer-Logik, native Integrationen) + React/TypeScript (UI), gebaut mit [Wails v2](https://wails.io).
 **Zielplattformen:** Windows und macOS. Linux funktioniert zum Entwickeln, aber ohne Tray (siehe [Plattform-Unterschiede](#plattform-unterschiede)).
@@ -69,12 +75,68 @@ go test ./...
 | Phase überspringen | Button `Skip` | Menüeintrag |
 | Always on Top | Checkbox | Checkbox |
 | Sound an/aus | Checkbox | Checkbox |
-| Zeiten ändern | Panel `Settings` | — |
+| Zeiten ändern | Zahnrad rechts oben | — |
 | Fenster ein-/ausblenden | — | `Show / Hide` |
 | Beenden | — | `Quit` |
 
-Auf Windows/macOS **minimiert das Schließen des Fensters in den Tray**, die App
-läuft weiter. Beendet wird sie über `Quit` im Tray-Menü.
+### Tastatur
+
+Alle Bedienelemente sind per `Tab` erreichbar und mit `Enter`/`Space`
+auslösbar; der Fokus ist sichtbar umrandet.
+
+| Taste | Aktion |
+| --- | --- |
+| `Ctrl` + `,` | Einstellungen öffnen/schließen |
+| `F1` | Kurzbefehl-Übersicht |
+| `F2` | Dauer der aktuellen Phase bearbeiten |
+| `Esc` | Schließen bzw. Eingabe abbrechen |
+
+Zusätzlich gibt es Ein-Tasten-Kürzel (aktiv, solange nicht in ein Eingabefeld
+getippt wird):
+
+| Taste | Aktion |
+| --- | --- |
+| `Space` / `K` | Start / Pause |
+| `R` | Phase zurücksetzen |
+| `N` / `S` | Phase überspringen |
+| `E` | Dauer der aktuellen Phase bearbeiten |
+| `,` | Einstellungen öffnen/schließen |
+| `?` | Kurzbefehl-Übersicht |
+
+Diese Buchstaben-Kürzel lassen sich in den Einstellungen über
+**Single-key shortcuts** abschalten — WCAG 2.1 SC 2.1.4 verlangt das, weil
+Sprachsteuerung und Screenreader einzelne Buchstaben ungewollt auslösen. Die
+Kürzel mit `Ctrl` bzw. `F1`/`F2` bleiben davon unberührt.
+
+Für Screenreader meldet eine Live-Region Phase, Status und Restzeit; die
+Fortschrittsleiste ist als `progressbar` ausgezeichnet, die Animationen sind
+als dekorativ ausgeblendet und respektieren `prefers-reduced-motion`.
+
+## Sprache
+
+Die Oberfläche, das Tray-Menü und die Benachrichtigungen gibt es auf **Deutsch
+und Englisch**. Standardmäßig richtet sich die App nach der Sprache des
+Betriebssystems (`GetUserDefaultLocaleName` unter Windows, `LC_ALL`/`LANG` sonst)
+— alles, was mit `de` beginnt, ergibt Deutsch, alles andere Englisch.
+
+Im Zahnrad-Menü lässt sich das über **Sprache / Language** überschreiben:
+`Automatisch (System)`, `Deutsch` oder `English`. Die Wahl landet als
+`language` in der `settings.json` und wirkt sofort, auch im Tray.
+
+## Tomaten sammeln
+
+Rechts oben zeigt ein kleines HUD eine Tomate mit der Anzahl der geernteten
+Tomaten — wie Münzen oder Sterne in einem Jump'n'Run. Eine Tomate gibt es
+**nur**, wenn eine Arbeitsphase von selbst ausläuft:
+
+- `Skip` in einer Arbeitsphase zermatscht die Tomate: die **Serie** fällt auf
+  null, die bereits gesammelten Tomaten bleiben erhalten.
+- `Reset` beendet die Serie ebenfalls.
+- Ab zwei Phasen in Folge erscheint ein `n× streak`-Badge, die Bestmarke wird
+  mitgeführt (Tooltip).
+
+Gespeichert wird das in `harvest.json` neben der `settings.json` (bzw. im
+portablen Modus neben der Binary).
 
 ## Entwicklung unter WSL2
 
@@ -164,8 +226,10 @@ direkt anklicken und im Uhrenfeld überschreiben.
 | `shortBreakSeconds` | 300 | Dauer der kurzen Pause (Sekunden) |
 | `longBreakSeconds` | 900 | Dauer der langen Pause (Sekunden) |
 | `longBreakEvery` | 4 | Nach wie vielen Arbeitsphasen die lange Pause kommt |
+| `language` | "auto" | Sprache: `auto` (vom System), `de` oder `en` |
 | `alwaysOnTop` | false | Fenster immer im Vordergrund |
 | `soundEnabled` | true | Chime bei Phasenwechsel |
+| `singleKeyShortcuts` | true | Ein-Tasten-Kürzel (`Space`, `R`, `N`, …) aktiv |
 | `autoStartNext` | true | Nächste Phase automatisch starten |
 
 Die Dauern werden in Sekunden gespeichert, damit auch Zeiten unter einer

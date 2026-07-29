@@ -16,6 +16,10 @@ export function SetAlwaysOnTop(arg1:boolean):Promise<main.State>;
 
 export function SetCurrentDuration(arg1:number):Promise<main.State>;
 
+export function SetLanguage(arg1:string):Promise<main.State>;
+
+export function SetSingleKeyShortcuts(arg1:boolean):Promise<main.State>;
+
 export function SetSoundEnabled(arg1:boolean):Promise<main.State>;
 
 export function ShowWindow():Promise<void>;

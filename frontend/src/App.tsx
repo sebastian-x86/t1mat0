@@ -5,15 +5,20 @@ import {
     Reset,
     SetAlwaysOnTop,
     SetCurrentDuration,
+    SetLanguage,
+    SetSingleKeyShortcuts,
     SetSoundEnabled,
     Skip,
     Toggle,
     UpdateSettings,
 } from "../wailsjs/go/main/App";
 import {main} from "../wailsjs/go/models";
+import {texts} from "./i18n";
 import {playChime, unlockAudio} from "./sound";
 import TomatoDrip from "./TomatoDrip";
 import BeachScene from "./BeachScene";
+import LanguagePicker from "./LanguagePicker";
+import HarvestHud from "./HarvestHud";
 import "./App.css";
 
 type SettingsForm = {
@@ -26,7 +31,8 @@ type SettingsForm = {
 /** Renders seconds as the mm:ss the duration inputs expect. */
 function toDuration(seconds: number): string {
     const total = Math.max(0, Math.round(seconds));
-    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+    const minutes = Math.floor(total / 60);
+    return `${String(minutes).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
 }
 
 /**
@@ -66,11 +72,76 @@ function toForm(settings: main.Settings): SettingsForm {
     };
 }
 
-const DURATION_LABELS = {
-    workSeconds: "Work",
-    shortBreakSeconds: "Short break",
-    longBreakSeconds: "Long break",
+const DURATION_KEYS = {
+    workSeconds: "work",
+    shortBreakSeconds: "shortBreak",
+    longBreakSeconds: "longBreak",
 } as const;
+
+/**
+ * React registers onWheel passively, so the browser still scrolls the element
+ * a little before the handler runs. A native non-passive listener lets us
+ * swallow the scroll and only change the value.
+ */
+function useWheel<T extends HTMLElement>(handler: (event: WheelEvent) => void) {
+    const ref = useRef<T | null>(null);
+    const latest = useRef(handler);
+    latest.current = handler;
+
+    useEffect(() => {
+        const element = ref.current;
+        if (!element) {
+            return;
+        }
+        const onWheel = (event: WheelEvent) => {
+            event.preventDefault();
+            latest.current(event);
+        };
+        element.addEventListener("wheel", onWheel, {passive: false});
+        return () => element.removeEventListener("wheel", onWheel);
+    });
+
+    return ref;
+}
+
+/**
+ * Works out whether the pointer sits on the minutes or the seconds part of a
+ * mm:ss input, so the wheel changes the segment under the cursor. The text is
+ * measured on a canvas because an input has no per-character geometry.
+ */
+const textMetrics = document.createElement("canvas").getContext("2d");
+
+function segmentAtPointer(input: HTMLInputElement, clientX: number): "minutes" | "seconds" {
+    const colon = input.value.indexOf(":");
+    if (colon < 0 || !textMetrics) {
+        return "minutes";
+    }
+
+    const style = window.getComputedStyle(input);
+    textMetrics.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+    const width = (text: string) => textMetrics.measureText(text).width;
+
+    const rect = input.getBoundingClientRect();
+    const left =
+        rect.left + parseFloat(style.borderLeftWidth || "0") + parseFloat(style.paddingLeft || "0");
+    const inner =
+        rect.width -
+        parseFloat(style.borderLeftWidth || "0") -
+        parseFloat(style.borderRightWidth || "0") -
+        parseFloat(style.paddingLeft || "0") -
+        parseFloat(style.paddingRight || "0");
+
+    const total = width(input.value);
+    let start = left;
+    if (style.textAlign === "right" || style.textAlign === "end") {
+        start = left + inner - total;
+    } else if (style.textAlign === "center") {
+        start = left + (inner - total) / 2;
+    }
+
+    const divider = start + width(input.value.slice(0, colon)) + width(":") / 2;
+    return clientX < divider ? "minutes" : "seconds";
+}
 
 function App() {
     const [state, setState] = useState<main.State | null>(null);
@@ -79,7 +150,12 @@ function App() {
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [clockDraft, setClockDraft] = useState<string | null>(null);
     const [clockError, setClockError] = useState(false);
+    // Which half of mm:ss the keyboard is currently filling.
+    const [clockSegment, setClockSegment] = useState<0 | 1>(0);
+    // Digits typed into the active segment since it was entered.
+    const clockTyped = useRef("");
     const [squeezing, setSqueezing] = useState(false);
+    const [helpOpen, setHelpOpen] = useState(false);
     // Escape unmounts the input, which also fires blur — the ref keeps that
     // blur from committing the discarded draft.
     const clockCancelled = useRef(false);
@@ -116,10 +192,14 @@ function App() {
     }, []);
 
     const settingsRef = useRef<HTMLDivElement>(null);
+    const gearButtonRef = useRef<HTMLButtonElement>(null);
     useEffect(() => {
         if (!settingsOpen) {
             return;
         }
+        // Move focus into the panel so keyboard and screen reader users land
+        // where the popover opened.
+        settingsRef.current?.querySelector<HTMLElement>("input, button")?.focus();
         const onPointerDown = (event: PointerEvent) => {
             if (!settingsRef.current?.contains(event.target as Node)) {
                 setSettingsOpen(false);
@@ -128,6 +208,7 @@ function App() {
         const onKeyDown = (event: KeyboardEvent) => {
             if (event.key === "Escape") {
                 setSettingsOpen(false);
+                gearButtonRef.current?.focus();
             }
         };
         window.addEventListener("pointerdown", onPointerDown);
@@ -138,14 +219,94 @@ function App() {
         };
     }, [settingsOpen]);
 
+    const toggleTimer = useCallback(() => {
+        Toggle().then((s) => applyState(main.State.createFrom(s)));
+    }, [applyState]);
+
+    const resetTimer = useCallback(() => {
+        Reset().then((s) => applyState(main.State.createFrom(s)));
+    }, [applyState]);
+
     const startClockEdit = () => {
         if (!state) {
             return;
         }
         clockCancelled.current = false;
         setClockError(false);
+        setClockSegment(0);
+        clockTyped.current = "";
         setClockDraft(toDuration(state.remainingSeconds));
     };
+
+    const clockParts = (draft: string): [number, number] => {
+        const [minutes, seconds] = draft.split(":");
+        return [Number(minutes) || 0, Number(seconds) || 0];
+    };
+
+    const setClockParts = (minutes: number, seconds: number) => {
+        const total = Math.min(600 * 60, Math.max(0, minutes * 60 + seconds));
+        setClockDraft(toDuration(total));
+    };
+
+    /**
+     * Types into the mm:ss field like a clock widget: digits fill the minutes
+     * first and jump to the seconds on their own, no colon needed.
+     */
+    const typeClockDigit = (digit: string) => {
+        if (clockDraft === null) {
+            return;
+        }
+        const [minutes, seconds] = clockParts(clockDraft);
+        const typed = clockTyped.current + digit;
+
+        if (clockSegment === 0) {
+            const value = Number(typed.slice(-2));
+            setClockParts(value, seconds);
+            if (typed.length >= 2) {
+                clockTyped.current = "";
+                setClockSegment(1);
+            } else {
+                clockTyped.current = typed;
+            }
+            return;
+        }
+
+        // Seconds never carry over into minutes, so 7 then 9 lands on 59.
+        const value = Math.min(59, Number(typed.slice(-2)));
+        setClockParts(minutes, value);
+        clockTyped.current = typed.length >= 2 ? "" : typed;
+    };
+
+    const nudgeClockSegment = (delta: number) => {
+        if (clockDraft === null) {
+            return;
+        }
+        const [minutes, seconds] = clockParts(clockDraft);
+        clockTyped.current = "";
+        if (clockSegment === 0) {
+            setClockParts(Math.max(0, minutes + delta), seconds);
+        } else {
+            setClockParts(minutes, Math.min(59, Math.max(0, seconds + delta)));
+        }
+    };
+
+    // Same wheel handling as the settings fields, but on the draft above the
+    // tomato.
+    const clockWheelRef = useWheel<HTMLInputElement>((event) => {
+        if (clockDraft === null) {
+            return;
+        }
+        const current = parseDuration(clockDraft);
+        if (current === null) {
+            return;
+        }
+        const target = event.currentTarget as HTMLInputElement;
+        const step = event.shiftKey || segmentAtPointer(target, event.clientX) === "seconds" ? 1 : 60;
+        const next = Math.min(600 * 60, Math.max(1, current + (event.deltaY < 0 ? step : -step)));
+        clockTyped.current = "";
+        setClockError(false);
+        setClockDraft(toDuration(next));
+    });
 
     const cancelClockEdit = () => {
         clockCancelled.current = true;
@@ -157,11 +318,12 @@ function App() {
         if (clockDraft === null || clockCancelled.current) {
             return;
         }
-        const seconds = parseDuration(clockDraft);
-        if (seconds === null || seconds < 1) {
+        const parsed = parseDuration(clockDraft);
+        if (parsed === null) {
             setClockError(true);
             return;
         }
+        const seconds = Math.max(1, parsed);
         try {
             const updated = await SetCurrentDuration(seconds);
             applyState(main.State.createFrom(updated));
@@ -195,12 +357,173 @@ function App() {
         return 1 - state.remainingSeconds / state.totalSeconds;
     }, [state]);
 
+    // Keyboard shortcuts are registered once; the ref keeps them pointing at
+    // the current handlers without re-binding the listener on every tick.
+    const shortcuts = useRef({
+        toggleTimer,
+        resetTimer,
+        skip,
+        startClockEdit,
+        editing: clockDraft !== null,
+        singleKey: state?.settings.singleKeyShortcuts ?? true,
+    });
+    shortcuts.current = {
+        toggleTimer,
+        resetTimer,
+        skip,
+        startClockEdit,
+        editing: clockDraft !== null,
+        singleKey: state?.settings.singleKeyShortcuts ?? true,
+    };
+
+    useEffect(() => {
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.repeat || event.altKey || event.metaKey) {
+                return;
+            }
+            const target = event.target as HTMLElement | null;
+            const typing =
+                !!target && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+            if (typing || shortcuts.current.editing) {
+                return;
+            }
+
+            const handled = () => {
+                event.preventDefault();
+                // A focused button would otherwise react to Space/Enter too.
+                target?.blur?.();
+            };
+
+            // Shortcuts with a modifier or function key stay available even
+            // when the single character keys are switched off (WCAG 2.1.4).
+            if (event.ctrlKey) {
+                if (event.key === ",") {
+                    handled();
+                    setSettingsOpen((open) => !open);
+                }
+                return;
+            }
+
+            switch (event.key) {
+                case "F1":
+                    handled();
+                    setHelpOpen((open) => !open);
+                    return;
+                case "F2":
+                    handled();
+                    shortcuts.current.startClockEdit();
+                    return;
+                case "Escape":
+                    setHelpOpen(false);
+                    return;
+            }
+
+            if (!shortcuts.current.singleKey) {
+                return;
+            }
+
+            switch (event.key.toLowerCase()) {
+                case " ":
+                case "k":
+                    handled();
+                    shortcuts.current.toggleTimer();
+                    break;
+                case "r":
+                    handled();
+                    shortcuts.current.resetTimer();
+                    break;
+                case "n":
+                case "s":
+                    handled();
+                    void shortcuts.current.skip();
+                    break;
+                case "e":
+                    handled();
+                    shortcuts.current.startClockEdit();
+                    break;
+                case ",":
+                    handled();
+                    setSettingsOpen((open) => !open);
+                    break;
+                case "?":
+                    handled();
+                    setHelpOpen((open) => !open);
+                    break;
+            }
+        };
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, []);
+
+    // Highlight the segment that the next digit will overwrite.
+    useEffect(() => {
+        const input = clockWheelRef.current;
+        if (clockDraft === null || !input) {
+            return;
+        }
+        const colon = clockDraft.indexOf(":");
+        const [from, to] = clockSegment === 0 ? [0, colon] : [colon + 1, clockDraft.length];
+        input.setSelectionRange(from, to);
+    }, [clockDraft, clockSegment, clockWheelRef]);
+
+    // Mouse wheel nudges the segment under the pointer: minutes on the left of
+    // the colon, seconds on the right. Shift always steps in seconds.
+    const MAX_PHASE_SECONDS = 600 * 60;
+    const adjustDuration = (key: keyof SettingsForm, event: WheelEvent) => {
+        const input = event.currentTarget as HTMLInputElement;
+        const stepSeconds = event.shiftKey || segmentAtPointer(input, event.clientX) === "seconds" ? 1 : 60;
+        setForm((current) => {
+            if (!current) {
+                return current;
+            }
+            const seconds = parseDuration(current[key]);
+            if (seconds === null) {
+                return current;
+            }
+            const next = Math.min(
+                MAX_PHASE_SECONDS,
+                Math.max(1, seconds + (event.deltaY < 0 ? stepSeconds : -stepSeconds)),
+            );
+            return {...current, [key]: toDuration(next)};
+        });
+    };
+
+    const workWheelRef = useWheel<HTMLInputElement>((event) => adjustDuration("workSeconds", event));
+    const shortWheelRef = useWheel<HTMLInputElement>((event) => adjustDuration("shortBreakSeconds", event));
+    const longWheelRef = useWheel<HTMLInputElement>((event) => adjustDuration("longBreakSeconds", event));
+    const everyWheelRef = useWheel<HTMLInputElement>((event) => {
+        setForm((current) => {
+            if (!current) {
+                return current;
+            }
+            const count = Number(current.longBreakEvery);
+            if (!Number.isFinite(count)) {
+                return current;
+            }
+            const next = Math.min(600, Math.max(1, count + (event.deltaY < 0 ? 1 : -1)));
+            return {...current, longBreakEvery: String(next)};
+        });
+    });
+
     if (!state || !form) {
-        return <div className="app app--loading">Loading…</div>;
+        const fallback = texts(navigator.language.toLowerCase().startsWith("de") ? "de" : "en");
+        return <div className="app app--loading">{fallback.loading}</div>;
     }
 
-    const toggleLabel =
-        state.status === "running" ? "Pause" : state.status === "paused" ? "Resume" : "Start";
+    const t = texts(state.language);
+    const running = state.status === "running";
+    const toggleLabel = running ? t.pause : state.status === "paused" ? t.resume : t.start;
+    const statusLabel =
+        state.status === "running" ? t.statusRunning : state.status === "paused" ? t.statusPaused : t.statusIdle;
+
+    // Only advertise the letter shortcuts while they are actually enabled.
+    const keyHint = (key: string) => (state.settings.singleKeyShortcuts ? ` (${key})` : "");
+
+    // Work fills the bar as the tomato drains; a break empties it again.
+    const barFraction = state.phase === "work" ? progress : 1 - progress;
+
+    const phaseTitle =
+        state.phase === "work" ? t.workTitle : state.phase === "longBreak" ? t.longBreakTitle : t.shortBreakTitle;
 
     const updateField = (key: keyof SettingsForm) => (event: React.ChangeEvent<HTMLInputElement>) => {
         setForm({...form, [key]: event.target.value});
@@ -215,7 +538,7 @@ function App() {
 
         const invalid = Object.entries(durations).find(([, value]) => value === null);
         if (invalid) {
-            setError(`Invalid duration for "${DURATION_LABELS[invalid[0] as keyof typeof DURATION_LABELS]}" — use mm:ss, "45s" or minutes.`);
+            setError(t.invalidDuration(t[DURATION_KEYS[invalid[0] as keyof typeof DURATION_KEYS]]));
             return;
         }
 
@@ -240,70 +563,14 @@ function App() {
     return (
         <div className={`app app--${state.phase}`}>
             <header className="app__header">
-                <span className="app__phase">{state.phaseLabel}</span>
-                <span className="app__cycles">Completed: {state.completedWork}</span>
+                <HarvestHud
+                    language={state.language}
+                    tomatoes={state.harvest.tomatoes}
+                    streak={state.harvest.streak}
+                    bestStreak={state.harvest.bestStreak}
+                />
 
-                <div className="gear" ref={settingsRef}>
-                    <button
-                        className={`gear__button${settingsOpen ? " gear__button--open" : ""}`}
-                        onClick={() => setSettingsOpen((open) => !open)}
-                        aria-label="Settings"
-                        aria-expanded={settingsOpen}
-                        title="Settings"
-                    >
-                        <svg viewBox="0 0 24 24" className="gear__icon" aria-hidden="true">
-                            <path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8Zm8.4 3.4c0 .5 0 1-.1 1.4l2 1.5c.2.2.3.5.1.7l-1.9 3.3c-.1.2-.4.3-.7.2l-2.3-.9c-.7.6-1.5 1-2.4 1.3l-.4 2.4c0 .3-.3.4-.5.4h-3.8c-.3 0-.5-.1-.5-.4l-.4-2.4a7.6 7.6 0 0 1-2.4-1.3l-2.3.9c-.3.1-.6 0-.7-.2L1.7 15.6c-.2-.2-.1-.5.1-.7l2-1.5a8 8 0 0 1 0-2.8l-2-1.5c-.2-.2-.3-.5-.1-.7l1.9-3.3c.1-.2.4-.3.7-.2l2.3.9c.7-.6 1.5-1 2.4-1.3l.4-2.4c0-.3.2-.4.5-.4h3.8c.2 0 .5.1.5.4l.4 2.4c.9.3 1.7.7 2.4 1.3l2.3-.9c.3-.1.6 0 .7.2l1.9 3.3c.2.2.1.5-.1.7l-2 1.5c.1.4.1.9.1 1.4Z"/>
-                        </svg>
-                    </button>
-
-                    {settingsOpen && (
-                        <div className="gear__panel">
-                            <label className="field">
-                                <span>{DURATION_LABELS.workSeconds}</span>
-                                <input type="text" placeholder="25:00" value={form.workSeconds} onChange={updateField("workSeconds")}/>
-                            </label>
-                            <label className="field">
-                                <span>{DURATION_LABELS.shortBreakSeconds}</span>
-                                <input type="text" placeholder="5:00" value={form.shortBreakSeconds} onChange={updateField("shortBreakSeconds")}/>
-                            </label>
-                            <label className="field">
-                                <span>{DURATION_LABELS.longBreakSeconds}</span>
-                                <input type="text" placeholder="15:00" value={form.longBreakSeconds} onChange={updateField("longBreakSeconds")}/>
-                            </label>
-                            <label className="field">
-                                <span>Long break every</span>
-                                <input type="number" min={1} max={600} value={form.longBreakEvery} onChange={updateField("longBreakEvery")}/>
-                            </label>
-
-                            <p className="settings__hint">mm:ss, "45s" or plain minutes (e.g. 0:30).</p>
-
-                            <button className="btn btn--primary" onClick={saveSettings}>
-                                Save
-                            </button>
-
-                            <div className="gear__divider"/>
-
-                            <label className="toggle">
-                                <input
-                                    type="checkbox"
-                                    checked={state.settings.alwaysOnTop}
-                                    onChange={(e) => SetAlwaysOnTop(e.target.checked).then((s) => applyState(main.State.createFrom(s)))}
-                                />
-                                Always on Top
-                            </label>
-                            <label className="toggle">
-                                <input
-                                    type="checkbox"
-                                    checked={state.settings.soundEnabled}
-                                    onChange={(e) => SetSoundEnabled(e.target.checked).then((s) => applyState(main.State.createFrom(s)))}
-                                />
-                                Sound
-                            </label>
-
-                            {error && <p className="settings__error">{error}</p>}
-                        </div>
-                    )}
-                </div>
+                <span className="app__phase" title={phaseTitle}>{state.phaseLabel}</span>
             </header>
 
             <div className="clock">
@@ -311,7 +578,8 @@ function App() {
                     <button
                         className="clock__value clock__value--button"
                         onClick={startClockEdit}
-                        title="Click to edit the duration of this phase"
+                        title={t.clockEditTitle}
+                        aria-label={t.clockAria(state.formattedRemaining)}
                     >
                         {state.formattedRemaining}
                     </button>
@@ -321,54 +589,259 @@ function App() {
                         value={clockDraft}
                         autoFocus
                         spellCheck={false}
-                        onChange={(e) => {
-                            setClockDraft(e.target.value);
-                            setClockError(false);
-                        }}
+                        aria-label={t.clockDurationAria}
+                        aria-invalid={clockError}
+                        title={t.clockTitle}
+                        ref={clockWheelRef}
+                        readOnly
                         onBlur={commitClockEdit}
+                        onMouseUp={(e) => {
+                            // Clicking a half of the field starts editing there.
+                            const input = e.currentTarget;
+                            clockTyped.current = "";
+                            setClockSegment(segmentAtPointer(input, e.clientX) === "seconds" ? 1 : 0);
+                        }}
                         onKeyDown={(e) => {
                             if (e.key === "Enter") {
                                 e.preventDefault();
                                 void commitClockEdit();
-                            } else if (e.key === "Escape") {
+                                return;
+                            }
+                            if (e.key === "Escape") {
                                 e.preventDefault();
                                 cancelClockEdit();
+                                return;
+                            }
+                            if (/^[0-9]$/.test(e.key)) {
+                                e.preventDefault();
+                                typeClockDigit(e.key);
+                                return;
+                            }
+                            if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                                e.preventDefault();
+                                nudgeClockSegment(e.key === "ArrowUp" ? 1 : -1);
+                                return;
+                            }
+                            if (e.key === "ArrowLeft" || e.key === "ArrowRight" || e.key === "Tab") {
+                                e.preventDefault();
+                                clockTyped.current = "";
+                                setClockSegment(e.key === "ArrowLeft" ? 0 : 1);
+                                return;
+                            }
+                            if (e.key === "Backspace" || e.key === "Delete") {
+                                e.preventDefault();
+                                clockTyped.current = "";
+                                nudgeClockSegment(0);
+                                const [minutes, seconds] = clockParts(clockDraft ?? "00:00");
+                                if (clockSegment === 0) {
+                                    setClockParts(0, seconds);
+                                } else {
+                                    setClockParts(minutes, 0);
+                                }
+                                return;
+                            }
+                            // Everything else — letters, the colon, punctuation —
+                            // has no meaning in a mm:ss field.
+                            if (e.key.length === 1) {
+                                e.preventDefault();
                             }
                         }}
                     />
                 )}
                 <div className="clock__status">
-                    {clockDraft === null ? state.status : "mm:ss · Enter to set, Esc to cancel"}
+                    {clockDraft === null ? statusLabel : t.clockHint}
                 </div>
-                <div className="clock__progress">
-                    <div className="clock__progress-bar" style={{width: `${Math.round(progress * 100)}%`}}/>
+                <div
+                    className="clock__progress"
+                    role="progressbar"
+                    aria-label={t.progressAria(state.phaseLabel)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(progress * 100)}
+                    aria-valuetext={t.progressValue(Math.round(progress * 100), state.formattedRemaining)}
+                >
+                    <div className="clock__progress-bar" style={{width: `${Math.round(barFraction * 100)}%`}}/>
                 </div>
             </div>
 
-            {state.phase === "work" || squeezing ? (
-                <TomatoDrip
-                    progress={progress}
-                    running={state.status === "running"}
-                    squeezing={squeezing}
-                />
-            ) : (
-                <BeachScene
-                    progress={progress}
-                    running={state.status === "running"}
-                    long={state.phase === "longBreak"}
-                />
-            )}
+            <p className="sr-only" role="status" aria-live="polite">
+                {t.liveStatus(state.phaseLabel, statusLabel, state.formattedRemaining)}
+            </p>
 
-            <div className="actions">
-                <button className="btn btn--primary" onClick={() => Toggle().then((s) => applyState(main.State.createFrom(s)))}>
+            <div className="scene" style={{display: "contents"}}>
+                {state.phase === "work" || squeezing ? (
+                    <TomatoDrip
+                        progress={progress}
+                        running={running}
+                        squeezing={squeezing}
+                    />
+                ) : (
+                    <BeachScene
+                        progress={progress}
+                        running={running}
+                        long={state.phase === "longBreak"}
+                    />
+                )}
+            </div>
+
+            <div className="actions-bar">
+                {helpOpen && (
+                    <div className="shortcuts" role="dialog" aria-label={t.shortcuts}>
+                        <dl className="shortcuts__list">
+                            <dt><kbd>{state.language === "de" ? "Strg" : "Ctrl"}</kbd>+<kbd>,</kbd></dt><dd>{t.scSettings}</dd>
+                            <dt><kbd>F1</kbd></dt><dd>{t.scList}</dd>
+                            <dt><kbd>F2</kbd></dt><dd>{t.scEdit}</dd>
+                            <dt><kbd>Tab</kbd></dt><dd>{t.scFocus}</dd>
+                            <dt><kbd>Esc</kbd></dt><dd>{t.scClose}</dd>
+                        </dl>
+                        {state.settings.singleKeyShortcuts ? (
+                            <dl className="shortcuts__list shortcuts__list--single">
+                                <dt><kbd>{state.language === "de" ? "Leer" : "Space"}</kbd> / <kbd>K</kbd></dt><dd>{t.scToggle}</dd>
+                                <dt><kbd>R</kbd></dt><dd>{t.scReset}</dd>
+                                <dt><kbd>N</kbd> / <kbd>S</kbd></dt><dd>{t.scSkip}</dd>
+                                <dt><kbd>E</kbd></dt><dd>{t.scEdit}</dd>
+                                <dt><kbd>,</kbd></dt><dd>{t.scSettings}</dd>
+                                <dt><kbd>?</kbd></dt><dd>{t.scList}</dd>
+                            </dl>
+                        ) : (
+                            <p className="shortcuts__hint">{t.scOff}</p>
+                        )}
+                    </div>
+                )}
+
+                <div className="actions">
+                <button
+                    className="btn btn--primary"
+                    onClick={toggleTimer}
+                    title={t.toggleTitle(toggleLabel, keyHint("Space"))}
+                >
+                    <svg className="btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+                        {running ? (
+                            <>
+                                <rect x="6" y="4.5" width="4.4" height="15" rx="1.4"/>
+                                <rect x="13.6" y="4.5" width="4.4" height="15" rx="1.4"/>
+                            </>
+                        ) : (
+                            <path d="M7.5 4.9c0-1 1.1-1.6 2-1.1l10.2 6.6c.8.5.8 1.7 0 2.2L9.5 19.2c-.9.5-2-.1-2-1.1V4.9Z"/>
+                        )}
+                    </svg>
                     {toggleLabel}
                 </button>
-                <button className="btn" onClick={() => Reset().then((s) => applyState(main.State.createFrom(s)))}>
-                    Reset
+                <button
+                    className="btn btn--icon"
+                    onClick={resetTimer}
+                    title={t.resetTitle(keyHint("R"))}
+                    aria-label={t.reset}
+                >
+                    <svg className="btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 5.5a6.5 6.5 0 1 0 6.2 8.5" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"/>
+                        <path d="M12 2.2v6.6l-4.6-3.3L12 2.2Z"/>
+                    </svg>
                 </button>
-                <button className="btn" onClick={skip}>
-                    Skip
+                <button
+                    className="btn btn--icon"
+                    onClick={skip}
+                    title={t.skipTitle(keyHint("N"))}
+                    aria-label={t.skip}
+                >
+                    <svg className="btn__icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M6 5.6c0-.9 1-1.4 1.7-.9l8 6.4c.6.5.6 1.3 0 1.8l-8 6.4c-.7.5-1.7 0-1.7-.9V5.6Z"/>
+                        <rect x="17.2" y="4.6" width="2.6" height="14.8" rx="1.2"/>
+                    </svg>
                 </button>
+                <button
+                    className={`btn btn--ghost${helpOpen ? " btn--active" : ""}`}
+                    onClick={() => setHelpOpen((open) => !open)}
+                    aria-expanded={helpOpen}
+                    aria-haspopup="dialog"
+                    title={t.shortcutsTitle}
+                    aria-label="Keyboard shortcuts"
+                >
+                    ?
+                </button>
+
+                <div className="gear" ref={settingsRef}>
+                    <button
+                        ref={gearButtonRef}
+                        className={`gear__button${settingsOpen ? " gear__button--open" : ""}`}
+                        onClick={() => setSettingsOpen((open) => !open)}
+                        aria-label={t.settings}
+                        aria-expanded={settingsOpen}
+                        aria-haspopup="dialog"
+                        title={t.settingsTitle}
+                    >
+                        <svg viewBox="0 0 24 24" className="gear__icon" aria-hidden="true">
+                            <path d="M18.2 10.2 L21.2 10.5 L21.2 13.5 L18.2 13.8 L17.7 15.1 L19.6 17.4 L17.4 19.6 L15.1 17.7 L13.8 18.2 L13.5 21.2 L10.5 21.2 L10.2 18.2 L8.9 17.7 L6.6 19.6 L4.4 17.4 L6.3 15.1 L5.8 13.8 L2.8 13.5 L2.8 10.5 L5.8 10.2 L6.3 8.9 L4.4 6.6 L6.6 4.4 L8.9 6.3 L10.2 5.8 L10.5 2.8 L13.5 2.8 L13.8 5.8 L15.1 6.3 L17.4 4.4 L19.6 6.6 L17.7 8.9 Z"/>
+                            <circle cx="12" cy="12" r="3.3"/>
+                        </svg>
+                    </button>
+
+                    {settingsOpen && (
+                        <div className="gear__panel" role="dialog" aria-label={t.settings}>
+                            <label className="field">
+                                <span>{t.work}</span>
+                                <input type="text" placeholder="25:00" ref={workWheelRef} title={t.durationTitle(t.work)} value={form.workSeconds} onChange={updateField("workSeconds")}/>
+                            </label>
+                            <label className="field">
+                                <span>{t.shortBreak}</span>
+                                <input type="text" placeholder="5:00" ref={shortWheelRef} title={t.durationTitle(t.shortBreak)} value={form.shortBreakSeconds} onChange={updateField("shortBreakSeconds")}/>
+                            </label>
+                            <label className="field">
+                                <span>{t.longBreak}</span>
+                                <input type="text" placeholder="15:00" ref={longWheelRef} title={t.durationTitle(t.longBreak)} value={form.longBreakSeconds} onChange={updateField("longBreakSeconds")}/>
+                            </label>
+                            <label className="field">
+                                <span>{t.longBreakEvery}</span>
+                                <input type="number" min={1} max={600} ref={everyWheelRef} title={t.longBreakEveryTitle} value={form.longBreakEvery} onChange={updateField("longBreakEvery")}/>
+                            </label>
+
+                            <p className="settings__hint">{t.durationHint}</p>
+
+                            <button className="btn btn--primary" onClick={saveSettings} title={t.saveTitle}>
+                                {t.save}
+                            </button>
+
+                            <div className="gear__divider"/>
+
+                            <div className="field" title={t.languageTitle}>
+                                <span>{t.language}</span>
+                                <LanguagePicker
+                                    value={state.settings.language}
+                                    autoLabel={t.languageAuto}
+                                    onChange={(value) => SetLanguage(value).then((s) => applyState(main.State.createFrom(s)))}
+                                />
+                            </div>
+
+                            <label className="toggle" title={t.alwaysOnTopTitle}>
+                                <input
+                                    type="checkbox"
+                                    checked={state.settings.alwaysOnTop}
+                                    onChange={(e) => SetAlwaysOnTop(e.target.checked).then((s) => applyState(main.State.createFrom(s)))}
+                                />
+                                {t.alwaysOnTop}
+                            </label>
+                            <label className="toggle" title={t.soundTitle}>
+                                <input
+                                    type="checkbox"
+                                    checked={state.settings.soundEnabled}
+                                    onChange={(e) => SetSoundEnabled(e.target.checked).then((s) => applyState(main.State.createFrom(s)))}
+                                />
+                                {t.sound}
+                            </label>
+                            <label className="toggle" title={t.singleKeyTitle}>
+                                <input
+                                    type="checkbox"
+                                    checked={state.settings.singleKeyShortcuts}
+                                    onChange={(e) => SetSingleKeyShortcuts(e.target.checked).then((s) => applyState(main.State.createFrom(s)))}
+                                />
+                                {t.singleKey}
+                            </label>
+
+                            {error && <p className="settings__error" role="alert">{error}</p>}
+                        </div>
+                    )}
+                </div>
+                </div>
             </div>
 
         </div>
