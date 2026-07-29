@@ -54,6 +54,7 @@ function TomatoDrip({progress, running, squeezing = false}: TomatoDripProps) {
             className={`drip${dripping ? " drip--running" : ""}${clamped >= 1 ? " drip--full" : ""}${
                 squeezing ? " drip--squeeze" : ""
             }`}
+            aria-hidden="true"
         >
             <svg
                 className="drip__svg"

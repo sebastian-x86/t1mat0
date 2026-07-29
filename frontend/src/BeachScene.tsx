@@ -90,7 +90,7 @@ function BeachScene({progress, running, long}: BeachSceneProps) {
     const drinkOffset = clamped * COCKTAIL_SPAN;
 
     return (
-        <div className={`beach${running ? " beach--running" : ""}`}>
+        <div className={`beach${running ? " beach--running" : ""}`} aria-hidden="true">
             <svg
                 className="beach__svg"
                 viewBox="0 0 200 250"

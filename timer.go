@@ -38,6 +38,12 @@ type Settings struct {
 	AlwaysOnTop       bool `json:"alwaysOnTop"`
 	SoundEnabled      bool `json:"soundEnabled"`
 	AutoStartNext     bool `json:"autoStartNext"`
+	// Language is "auto", "en" or "de".
+	Language string `json:"language"`
+	// SingleKeyShortcuts enables the letter shortcuts (space, n, r, ...).
+	// WCAG 2.1.4 requires them to be switchable off, because speech input
+	// and screen readers trigger bare character keys unintentionally.
+	SingleKeyShortcuts bool `json:"singleKeyShortcuts"`
 }
 
 // legacySettings mirrors the pre-seconds settings file format.
@@ -85,13 +91,15 @@ func hasKey(data []byte, key string) bool {
 // DefaultSettings returns the classic pomodoro configuration.
 func DefaultSettings() Settings {
 	return Settings{
-		WorkSeconds:       25 * 60,
-		ShortBreakSeconds: 5 * 60,
-		LongBreakSeconds:  15 * 60,
-		LongBreakEvery:    4,
-		AlwaysOnTop:       false,
-		SoundEnabled:      true,
-		AutoStartNext:     true,
+		WorkSeconds:        25 * 60,
+		ShortBreakSeconds:  5 * 60,
+		LongBreakSeconds:   15 * 60,
+		LongBreakEvery:     4,
+		AlwaysOnTop:        false,
+		SoundEnabled:       true,
+		AutoStartNext:      true,
+		Language:           LangAuto,
+		SingleKeyShortcuts: true,
 	}
 }
 
@@ -129,6 +137,9 @@ type State struct {
 	TotalSeconds       int      `json:"totalSeconds"`
 	FormattedRemaining string   `json:"formattedRemaining"`
 	Settings           Settings `json:"settings"`
+	Harvest            Harvest  `json:"harvest"`
+	// Language is the resolved UI language ("en" or "de").
+	Language string `json:"language"`
 }
 
 // Timer implements the pomodoro state machine. It is safe for concurrent use.
@@ -139,6 +150,7 @@ type Timer struct {
 	phase            Phase
 	completedWork    int
 	remainingSeconds int
+	harvest          Harvest
 }
 
 // NewTimer creates a timer in idle state at the start of a work phase.
@@ -166,18 +178,6 @@ func (t *Timer) phaseDurationSeconds(phase Phase) int {
 	}
 }
 
-// PhaseLabel returns a human readable name for a phase.
-func PhaseLabel(phase Phase) string {
-	switch phase {
-	case PhaseShortBreak:
-		return "Short Break"
-	case PhaseLongBreak:
-		return "Long Break"
-	default:
-		return "Work"
-	}
-}
-
 // FormatSeconds renders seconds as mm:ss (or hh:mm:ss beyond an hour).
 func FormatSeconds(total int) string {
 	if total < 0 {
@@ -196,12 +196,14 @@ func (t *Timer) snapshotLocked() State {
 	return State{
 		Status:             t.status,
 		Phase:              t.phase,
-		PhaseLabel:         PhaseLabel(t.phase),
+		PhaseLabel:         PhaseLabelIn(ResolveLanguage(t.settings.Language), t.phase),
 		CompletedWork:      t.completedWork,
 		RemainingSeconds:   t.remainingSeconds,
 		TotalSeconds:       t.phaseDurationSeconds(t.phase),
 		FormattedRemaining: FormatSeconds(t.remainingSeconds),
 		Settings:           t.settings,
+		Harvest:            t.harvest,
+		Language:           ResolveLanguage(t.settings.Language),
 	}
 }
 
@@ -251,6 +253,7 @@ func (t *Timer) Reset() State {
 	t.status = StatusIdle
 	t.phase = PhaseWork
 	t.completedWork = 0
+	t.harvest.Streak = 0
 	t.remainingSeconds = t.phaseDurationSeconds(PhaseWork)
 	return t.snapshotLocked()
 }
@@ -280,6 +283,9 @@ func (t *Timer) Skip() (State, Phase) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	previous := t.phase
+	if previous == PhaseWork {
+		t.harvest.Streak = 0
+	}
 	t.advanceLocked()
 	return t.snapshotLocked(), previous
 }
@@ -289,6 +295,8 @@ type TickResult struct {
 	State         State
 	PhaseChanged  bool
 	FinishedPhase Phase
+	// Harvested reports that this tick earned a tomato.
+	Harvested bool
 }
 
 // Tick advances the timer by one second. It only has an effect while running.
@@ -309,11 +317,21 @@ func (t *Timer) Tick() TickResult {
 	}
 
 	finished := t.phase
+	harvested := false
+	if finished == PhaseWork {
+		t.harvest.Tomatoes++
+		t.harvest.Streak++
+		if t.harvest.Streak > t.harvest.BestStreak {
+			t.harvest.BestStreak = t.harvest.Streak
+		}
+		harvested = true
+	}
 	t.advanceLocked()
 	return TickResult{
 		State:         t.snapshotLocked(),
 		PhaseChanged:  true,
 		FinishedPhase: finished,
+		Harvested:     harvested,
 	}
 }
 
@@ -375,5 +393,34 @@ func (t *Timer) SetSoundEnabled(enabled bool) State {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.settings.SoundEnabled = enabled
+	return t.snapshotLocked()
+}
+
+// SetLanguage stores the UI language preference ("auto", "en" or "de").
+func (t *Timer) SetLanguage(language string) State {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	switch language {
+	case LangGerman, LangEnglish:
+		t.settings.Language = language
+	default:
+		t.settings.Language = LangAuto
+	}
+	return t.snapshotLocked()
+}
+
+// SetHarvest restores a persisted harvest.
+func (t *Timer) SetHarvest(harvest Harvest) State {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.harvest = harvest
+	return t.snapshotLocked()
+}
+
+// SetSingleKeyShortcuts stores the single character shortcut preference.
+func (t *Timer) SetSingleKeyShortcuts(enabled bool) State {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.settings.SingleKeyShortcuts = enabled
 	return t.snapshotLocked()
 }

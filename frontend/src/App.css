@@ -45,75 +45,221 @@
     gap: 10px;
 }
 
-.app__cycles {
-    margin-left: auto;
-}
-
 .app__phase {
+    margin-left: auto;
     font-size: 1.1rem;
     font-weight: 700;
     color: var(--accent);
-}
-
-.app__cycles {
-    font-size: 0.8rem;
-    color: #9ca3af;
+    cursor: help;
+    user-select: none;
 }
 
 .gear {
     --wails-draggable: no-drag;
     position: relative;
+    display: flex;
+    align-items: center;
 }
 
 .gear__button {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 30px;
+    height: 34px;
     padding: 0;
     border: none;
-    border-radius: 50%;
-    background: var(--accent-work);
-    color: #fee2e2;
+    background: none;
+    color: #94a3b8;
     cursor: pointer;
-    transition: transform 0.25s ease, filter 0.15s ease;
+    transition: transform 0.3s ease, color 0.15s ease;
 }
 
 .gear__button:hover {
-    filter: brightness(1.15);
+    color: #f8fafc;
 }
 
-.gear__button--open {
+.gear__button--open,
+.gear__button--open:hover {
+    color: var(--accent);
     transform: rotate(60deg);
 }
 
 .gear__icon {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.gear__panel {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 0;
+    z-index: 20;
+    width: 212px;
+    padding: 12px 13px 13px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    border: 1px solid rgba(148, 163, 184, 0.18);
+    border-radius: 12px;
+    background: #1a2333;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+    text-align: left;
+    font-size: 0.8rem;
+    font-weight: 400;
+    animation: gear-in 0.14s ease-out;
+}
+
+/* Little caret pointing back down at the gear button. */
+.gear__panel::before {
+    content: "";
+    position: absolute;
+    bottom: -5px;
+    right: 13px;
+    width: 9px;
+    height: 9px;
+    background: #1a2333;
+    border-right: 1px solid rgba(148, 163, 184, 0.18);
+    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    transform: rotate(45deg);
+}
+
+@keyframes gear-in {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.gear__divider {
+    height: 1px;
+    margin: 3px 0 1px;
+    background: rgba(148, 163, 184, 0.16);
+}
+
+.field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: #9fb0c7;
+}
+
+.field input {
+    width: 74px;
+    padding: 5px 8px;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 7px;
+    background: rgba(148, 163, 184, 0.1);
+    color: #e5edf7;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    outline: none;
+    transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.field input[type="number"] {
+    /* Chromium reserves room for the spinner, which pushes the digits off the
+       right edge and out of line with the other fields. */
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.field input[type="number"]::-webkit-outer-spin-button,
+.field input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.langswitch {
+    display: flex;
+    gap: 4px;
+}
+
+.langswitch__option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 7px;
+    background: rgba(148, 163, 184, 0.1);
+    color: #9fb0c7;
+    cursor: pointer;
+    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.langswitch__option:hover {
+    background: rgba(148, 163, 184, 0.16);
+    color: #e5edf7;
+}
+
+.langswitch__option--on {
+    border-color: rgba(239, 68, 68, 0.7);
+    background: rgba(239, 68, 68, 0.14);
+    color: #e5edf7;
+}
+
+.langswitch__icon {
     width: 16px;
     height: 16px;
     fill: currentColor;
 }
 
-.gear__panel {
-    position: absolute;
-    top: 32px;
-    right: 0;
-    z-index: 20;
-    width: 220px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 9px;
-    border: 1px solid #374151;
-    border-radius: 10px;
-    background: #1b2434;
-    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
-    text-align: left;
+.langswitch__flag {
+    width: 20px;
+    height: 13px;
+    border-radius: 2px;
 }
 
-.gear__divider {
-    height: 1px;
-    background: #374151;
+.field input:hover {
+    background: rgba(148, 163, 184, 0.16);
+}
+
+.field input:focus {
+    border-color: rgba(239, 68, 68, 0.7);
+    background: rgba(148, 163, 184, 0.16);
+}
+
+.gear__panel .btn {
+    padding: 7px 10px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.gear__panel .btn--primary {
+    background: rgba(239, 68, 68, 0.85);
+    border-color: transparent;
+    color: #fff5f5;
+}
+
+.gear__panel .toggle {
+    gap: 8px;
+    font-size: 0.8rem;
+    color: #9fb0c7;
+}
+
+.gear__panel .toggle input {
+    width: 13px;
+    height: 13px;
+    accent-color: #ef4444;
+    cursor: pointer;
 }
 
 .clock {
@@ -955,6 +1101,10 @@
 
 .btn {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
     padding: 10px 12px;
     border: 1px solid #374151;
     border-radius: 10px;
@@ -966,6 +1116,12 @@
     transition: background 0.15s ease;
 }
 
+.btn__icon {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+}
+
 .btn:hover {
     background: #374151;
 }
@@ -973,37 +1129,246 @@
 .btn--primary {
     background: var(--accent);
     border-color: var(--accent);
-    color: #0b1120;
+    color: #ffffff;
 }
 
 .btn--primary:hover {
     filter: brightness(1.1);
 }
 
-.toggles {
-    --wails-draggable: no-drag;
-    display: flex;
-    gap: 16px;
-}
-
 .toggle {
     display: flex;
     align-items: center;
     gap: 6px;
-    font-size: 0.85rem;
     color: #d1d5db;
     cursor: pointer;
 }
 
 .settings__hint {
-    margin: 0;
-    color: #9ca3af;
-    font-size: 0.75rem;
+    margin: 1px 0 3px;
+    color: #64748b;
+    font-size: 0.68rem;
     line-height: 1.35;
 }
 
 .settings__error {
     margin: 0;
     color: #fca5a5;
-    font-size: 0.8rem;
+    font-size: 0.72rem;
+    line-height: 1.35;
+}
+
+/* Accessibility -------------------------------------------------------- */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    white-space: nowrap;
+    border: 0;
+}
+
+:focus-visible {
+    outline: 2px solid #f8fafc;
+    outline-offset: 2px;
+    border-radius: 8px;
+}
+
+.btn:focus-visible,
+.gear__button:focus-visible,
+.clock__value--button:focus-visible {
+    outline: 2px solid #f8fafc;
+    outline-offset: 3px;
+}
+
+.btn--icon {
+    flex: 0 0 auto;
+    width: 42px;
+    padding: 10px 0;
+}
+
+.btn--ghost {
+    flex: 0 0 auto;
+    min-width: 34px;
+    padding: 0 10px;
+    font-weight: 700;
+}
+
+.actions-bar {
+    position: relative;
+}
+
+/* Opens upwards so the window never has to grow or scroll. */
+.shortcuts {
+    --wails-draggable: no-drag;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 8px);
+    z-index: 5;
+    padding: 10px 12px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 10px;
+    background: rgba(15, 23, 42, 0.94);
+    box-shadow: 0 12px 30px rgba(2, 6, 23, 0.55);
+    backdrop-filter: blur(4px);
+}
+
+.shortcuts__list {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 4px 10px;
+    margin: 0;
+    font-size: 0.72rem;
+    color: #cbd5e1;
+}
+
+.shortcuts__list dt {
+    margin: 0;
+}
+
+.shortcuts__list dd {
+    margin: 0;
+}
+
+.shortcuts kbd {
+    display: inline-block;
+    min-width: 18px;
+    padding: 1px 5px;
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    border-bottom-width: 2px;
+    border-radius: 5px;
+    background: rgba(30, 41, 59, 0.9);
+    color: #e2e8f0;
+    font: inherit;
+    font-size: 0.68rem;
+    text-align: center;
+}
+
+.shortcuts__list--single {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.shortcuts__hint {
+    margin: 6px 0 0;
+    color: #94a3b8;
+    font-size: 0.68rem;
+}
+
+/* Keeps the trigger visually tied to its open popover. */
+.btn--active,
+.btn--active:hover {
+    border-color: var(--accent);
+    background: rgba(148, 163, 184, 0.18);
+    color: #f8fafc;
+}
+
+/* Harvest HUD ---------------------------------------------------------- */
+
+.harvest {
+    --wails-draggable: no-drag;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.harvest__total,
+.harvest__streak {
+    /* Nothing to click here, it only explains itself on hover. */
+    cursor: help;
+    user-select: none;
+}
+
+.harvest__total {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.harvest__icon {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    transition: transform 0.25s ease;
+}
+
+.harvest__body {
+    fill: var(--accent-work);
+}
+
+.harvest__leaf {
+    fill: #4ade80;
+}
+
+.harvest__shine {
+    fill: rgba(255, 255, 255, 0.45);
+}
+
+.harvest__count {
+    font-size: 0.95rem;
+    line-height: 1;
+    font-weight: 700;
+    color: #e2e8f0;
+    letter-spacing: 0.02em;
+}
+
+.harvest__streak {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(248, 113, 113, 0.16);
+    color: #fca5a5;
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* A freshly earned tomato pops like a collected coin. */
+.harvest--pop .harvest__icon {
+    animation: harvest-pop 0.9s ease;
+}
+
+.harvest--pop .harvest__count {
+    animation: harvest-count 0.9s ease;
+}
+
+@keyframes harvest-pop {
+    0% {
+        transform: scale(1);
+    }
+    35% {
+        transform: scale(1.45) translateY(-3px);
+    }
+    60% {
+        transform: scale(0.92);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes harvest-count {
+    0%,
+    100% {
+        transform: scale(1);
+        color: #e2e8f0;
+    }
+    40% {
+        transform: scale(1.25);
+        color: var(--accent-work);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .harvest--pop .harvest__icon,
+    .harvest--pop .harvest__count {
+        animation: none;
+    }
 }

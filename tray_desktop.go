@@ -70,20 +70,22 @@ func stopTray() {
 }
 
 func onTrayReady(app *App) {
+	lang := app.GetState().Language
+
 	systray.SetIcon(trayIcon())
-	systray.SetTitle("Pomodoro")
-	systray.SetTooltip("Pomodoro Timer")
+	systray.SetTitle(T(lang, "tray.title"))
+	systray.SetTooltip(T(lang, "tray.tooltip"))
 
 	menu := &trayMenu{
-		toggle:      systray.AddMenuItem("Start", "Start or pause the timer"),
-		reset:       systray.AddMenuItem("Reset", "Reset the timer"),
-		skip:        systray.AddMenuItem("Skip Phase", "Jump to the next phase"),
-		alwaysOnTop: systray.AddMenuItemCheckbox("Always on Top", "Keep the window above others", false),
-		sound:       systray.AddMenuItemCheckbox("Sound", "Play a sound on phase change", true),
-		showHide:    systray.AddMenuItem("Show / Hide", "Toggle the window"),
+		toggle:      systray.AddMenuItem(T(lang, "tray.start"), T(lang, "tray.startTip")),
+		reset:       systray.AddMenuItem(T(lang, "tray.reset"), T(lang, "tray.resetTip")),
+		skip:        systray.AddMenuItem(T(lang, "tray.skip"), T(lang, "tray.skipTip")),
+		alwaysOnTop: systray.AddMenuItemCheckbox(T(lang, "tray.alwaysOnTop"), T(lang, "tray.alwaysOnTopTip"), false),
+		sound:       systray.AddMenuItemCheckbox(T(lang, "tray.sound"), T(lang, "tray.soundTip"), true),
+		showHide:    systray.AddMenuItem(T(lang, "tray.showHide"), T(lang, "tray.showHideTip")),
 	}
 	systray.AddSeparator()
-	menu.quit = systray.AddMenuItem("Quit", "Exit the application")
+	menu.quit = systray.AddMenuItem(T(lang, "tray.quit"), T(lang, "tray.quitTip"))
 
 	trayMu.Lock()
 	tray = menu
@@ -123,18 +125,27 @@ func updateTray(state State) {
 		return
 	}
 
+	lang := state.Language
 	label := state.PhaseLabel + " " + state.FormattedRemaining
 	systray.SetTitle(label)
-	systray.SetTooltip("Pomodoro - " + label)
+	systray.SetTooltip(T(lang, "tray.title") + " - " + label)
 
 	switch state.Status {
 	case StatusRunning:
-		menu.toggle.SetTitle("Pause")
+		menu.toggle.SetTitle(T(lang, "tray.pause"))
 	case StatusPaused:
-		menu.toggle.SetTitle("Resume")
+		menu.toggle.SetTitle(T(lang, "tray.resume"))
 	default:
-		menu.toggle.SetTitle("Start")
+		menu.toggle.SetTitle(T(lang, "tray.start"))
 	}
+
+	// The language can change at runtime, so re-title the static entries too.
+	menu.reset.SetTitle(T(lang, "tray.reset"))
+	menu.skip.SetTitle(T(lang, "tray.skip"))
+	menu.alwaysOnTop.SetTitle(T(lang, "tray.alwaysOnTop"))
+	menu.sound.SetTitle(T(lang, "tray.sound"))
+	menu.showHide.SetTitle(T(lang, "tray.showHide"))
+	menu.quit.SetTitle(T(lang, "tray.quit"))
 
 	setChecked(menu.alwaysOnTop, state.Settings.AlwaysOnTop)
 	setChecked(menu.sound, state.Settings.SoundEnabled)
