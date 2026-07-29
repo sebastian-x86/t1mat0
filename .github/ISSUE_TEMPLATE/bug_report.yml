@@ -1,0 +1,61 @@
+name: Fehler melden
+description: Etwas funktioniert nicht wie beschrieben
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Was ist passiert?
+      description: Beschreibe den Fehler und was du stattdessen erwartet hast.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Schritte zum Nachstellen
+      placeholder: |
+        1. App starten
+        2. Auf ... klicken
+        3. Fehler tritt auf
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Steht in der Tastaturübersicht (F1), unten als „t1mat0 vX.Y.Z“.
+      placeholder: v0.1.0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Betriebssystem
+      options:
+        - Windows 11
+        - Windows 10
+        - macOS
+        - Linux
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: Sprache der App
+      options:
+        - Deutsch
+        - Englisch
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshot oder Einstellungen
+      description: |
+        Optional. Ein Screenshot hilft oft mehr als eine Beschreibung. Der
+        Inhalt von `settings.json` kann ebenfalls nützlich sein.
