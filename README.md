@@ -95,7 +95,7 @@ laufen also auch ohne die apt-Pakete oben:
 
 ```bash
 go test ./...                      # Timer, Settings, Ernte, Sprache
-go test ./... -cover               # mit Abdeckung (aktuell ~78 %)
+go test . -cover                   # mit Abdeckung (aktuell ~77 %)
 ```
 
 Der Coverage-Badge oben liest seinen Wert aus dem Branch `badges`, den die CI

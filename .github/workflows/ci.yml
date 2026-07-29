@@ -51,8 +51,12 @@ jobs:
           mkdir -p frontend/dist
           echo '<!doctype html><title>test build</title>' > frontend/dist/index.html
 
+      # tools/ holds one-off generators that ship with no tests. Counting them
+      # would drag the total down without saying anything about the app.
       - name: Test
-        run: go test -tags webkit2_41 -coverprofile=coverage.out ./...
+        run: |
+          packages=$(go list ./... | grep -v '/tools/')
+          go test -tags webkit2_41 -coverprofile=coverage.out $packages
 
       - name: Read coverage
         id: cover
