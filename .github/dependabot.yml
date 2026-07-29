@@ -1,0 +1,34 @@
+version: 2
+
+updates:
+  # Die Aktionen in den Workflows altern am schnellsten und brechen die CI,
+  # sobald GitHub eine Node-Version abkündigt.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: build
+      prefix-development: build
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: build
+      prefix-development: build
+    # Ein Update pro Abhängigkeit erzeugt zu viele PRs für ein Projekt dieser
+    # Größe; Patch- und Minor-Sprünge kommen gesammelt.
+    groups:
+      frontend-minor:
+        update-types:
+          - minor
+          - patch
