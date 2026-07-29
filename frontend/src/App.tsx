@@ -14,6 +14,15 @@ import {
 } from "../wailsjs/go/main/App";
 import {main} from "../wailsjs/go/models";
 import {texts} from "./i18n";
+import {
+    clockParts,
+    joinClockParts,
+    nudgeClockSegment as nudgeSegment,
+    parseDuration,
+    stepDuration,
+    toDuration,
+    typeClockDigit as typeDigit,
+} from "./duration";
 import {playChime, unlockAudio} from "./sound";
 import TomatoDrip from "./TomatoDrip";
 import BeachScene from "./BeachScene";
@@ -27,41 +36,6 @@ type SettingsForm = {
     longBreakSeconds: string;
     longBreakEvery: string;
 };
-
-/** Renders seconds as the mm:ss the duration inputs expect. */
-function toDuration(seconds: number): string {
-    const total = Math.max(0, Math.round(seconds));
-    const minutes = Math.floor(total / 60);
-    return `${String(minutes).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
-}
-
-/**
- * Parses a duration input. "1:30" is 90 seconds, "45s" is 45 seconds and a
- * bare number stays minutes so existing muscle memory keeps working.
- */
-function parseDuration(input: string): number | null {
-    const value = input.trim().toLowerCase();
-    if (value === "") {
-        return null;
-    }
-
-    const clock = value.match(/^(\d+):([0-5]?\d)$/);
-    if (clock) {
-        return Number(clock[1]) * 60 + Number(clock[2]);
-    }
-
-    const seconds = value.match(/^(\d+(?:[.,]\d+)?)\s*s$/);
-    if (seconds) {
-        return Math.round(Number(seconds[1].replace(",", ".")));
-    }
-
-    const minutes = value.match(/^(\d+(?:[.,]\d+)?)\s*(?:m|min)?$/);
-    if (minutes) {
-        return Math.round(Number(minutes[1].replace(",", ".")) * 60);
-    }
-
-    return null;
-}
 
 function toForm(settings: main.Settings): SettingsForm {
     return {
@@ -141,6 +115,15 @@ function segmentAtPointer(input: HTMLInputElement, clientX: number): "minutes" |
 
     const divider = start + width(input.value.slice(0, colon)) + width(":") / 2;
     return clientX < divider ? "minutes" : "seconds";
+}
+
+/**
+ * True when the OS asks for less movement. The squeeze gag is pure motion, so
+ * it is skipped entirely instead of being played at high speed (WCAG 2.1
+ * SC 2.3.3).
+ */
+function prefersReducedMotion(): boolean {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 function App() {
@@ -238,56 +221,23 @@ function App() {
         setClockDraft(toDuration(state.remainingSeconds));
     };
 
-    const clockParts = (draft: string): [number, number] => {
-        const [minutes, seconds] = draft.split(":");
-        return [Number(minutes) || 0, Number(seconds) || 0];
-    };
-
-    const setClockParts = (minutes: number, seconds: number) => {
-        const total = Math.min(600 * 60, Math.max(0, minutes * 60 + seconds));
-        setClockDraft(toDuration(total));
-    };
-
-    /**
-     * Types into the mm:ss field like a clock widget: digits fill the minutes
-     * first and jump to the seconds on their own, no colon needed.
-     */
+    // The mm:ss rules live in duration.ts; this only feeds React state.
     const typeClockDigit = (digit: string) => {
         if (clockDraft === null) {
             return;
         }
-        const [minutes, seconds] = clockParts(clockDraft);
-        const typed = clockTyped.current + digit;
-
-        if (clockSegment === 0) {
-            const value = Number(typed.slice(-2));
-            setClockParts(value, seconds);
-            if (typed.length >= 2) {
-                clockTyped.current = "";
-                setClockSegment(1);
-            } else {
-                clockTyped.current = typed;
-            }
-            return;
-        }
-
-        // Seconds never carry over into minutes, so 7 then 9 lands on 59.
-        const value = Math.min(59, Number(typed.slice(-2)));
-        setClockParts(minutes, value);
-        clockTyped.current = typed.length >= 2 ? "" : typed;
+        const next = typeDigit({draft: clockDraft, segment: clockSegment, typed: clockTyped.current}, digit);
+        clockTyped.current = next.typed;
+        setClockSegment(next.segment);
+        setClockDraft(next.draft);
     };
 
     const nudgeClockSegment = (delta: number) => {
         if (clockDraft === null) {
             return;
         }
-        const [minutes, seconds] = clockParts(clockDraft);
         clockTyped.current = "";
-        if (clockSegment === 0) {
-            setClockParts(Math.max(0, minutes + delta), seconds);
-        } else {
-            setClockParts(minutes, Math.min(59, Math.max(0, seconds + delta)));
-        }
+        setClockDraft(nudgeSegment(clockDraft, clockSegment, delta));
     };
 
     // Same wheel handling as the settings fields, but on the draft above the
@@ -302,7 +252,7 @@ function App() {
         }
         const target = event.currentTarget as HTMLInputElement;
         const step = event.shiftKey || segmentAtPointer(target, event.clientX) === "seconds" ? 1 : 60;
-        const next = Math.min(600 * 60, Math.max(1, current + (event.deltaY < 0 ? step : -step)));
+        const next = stepDuration(current, event.deltaY < 0 ? step : -step);
         clockTyped.current = "";
         setClockError(false);
         setClockDraft(toDuration(next));
@@ -337,9 +287,10 @@ function App() {
 
     // Skipping a work phase squeezes the tomato into the glass. The scene has
     // to stay on screen for the whole gag, even though the timer already
-    // switched over to the break.
+    // switched over to the break. With reduced motion the gag is dropped and
+    // the break scene appears right away.
     const skip = async () => {
-        const wasWork = state?.phase === "work";
+        const wasWork = state?.phase === "work" && !prefersReducedMotion();
         if (wasWork) {
             setSqueezing(true);
         }
@@ -468,7 +419,6 @@ function App() {
 
     // Mouse wheel nudges the segment under the pointer: minutes on the left of
     // the colon, seconds on the right. Shift always steps in seconds.
-    const MAX_PHASE_SECONDS = 600 * 60;
     const adjustDuration = (key: keyof SettingsForm, event: WheelEvent) => {
         const input = event.currentTarget as HTMLInputElement;
         const stepSeconds = event.shiftKey || segmentAtPointer(input, event.clientX) === "seconds" ? 1 : 60;
@@ -480,10 +430,7 @@ function App() {
             if (seconds === null) {
                 return current;
             }
-            const next = Math.min(
-                MAX_PHASE_SECONDS,
-                Math.max(1, seconds + (event.deltaY < 0 ? stepSeconds : -stepSeconds)),
-            );
+            const next = stepDuration(seconds, event.deltaY < 0 ? stepSeconds : -stepSeconds);
             return {...current, [key]: toDuration(next)};
         });
     };
@@ -631,13 +578,12 @@ function App() {
                             if (e.key === "Backspace" || e.key === "Delete") {
                                 e.preventDefault();
                                 clockTyped.current = "";
-                                nudgeClockSegment(0);
                                 const [minutes, seconds] = clockParts(clockDraft ?? "00:00");
-                                if (clockSegment === 0) {
-                                    setClockParts(0, seconds);
-                                } else {
-                                    setClockParts(minutes, 0);
-                                }
+                                setClockDraft(
+                                    clockSegment === 0
+                                        ? joinClockParts(0, seconds)
+                                        : joinClockParts(minutes, 0),
+                                );
                                 return;
                             }
                             // Everything else — letters, the colon, punctuation —
@@ -674,12 +620,14 @@ function App() {
                         progress={progress}
                         running={running}
                         squeezing={squeezing}
+                        paused={state.status === "paused"}
                     />
                 ) : (
                     <BeachScene
                         progress={progress}
                         running={running}
                         long={state.phase === "longBreak"}
+                        paused={state.status === "paused"}
                     />
                 )}
             </div>

@@ -65,7 +65,11 @@ func (a *App) shutdown(ctx context.Context) {
 		close(a.done)
 	}
 	stopTray()
-	wailsRuntime.CleanupNotifications(ctx)
+	// A shutdown before startup has no runtime context; the settings still
+	// have to reach the disk.
+	if ctx != nil {
+		wailsRuntime.CleanupNotifications(ctx)
+	}
 	_ = SaveSettings(a.timer.Snapshot().Settings)
 }
 
