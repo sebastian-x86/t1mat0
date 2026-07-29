@@ -1,3 +1,11 @@
+// t1mat0 — a small pomodoro timer.
+// Copyright (C) 2026 Sebastian Schamschat
+//
+// This program is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by the Free
+// Software Foundation, either version 3 of the License, or (at your option)
+// any later version. See the LICENSE file for details.
+
 package main
 
 import (
@@ -12,6 +20,10 @@ import (
 
 //go:embed all:frontend/dist
 var assets embed.FS
+
+// version is set at build time via -ldflags "-X main.version=v1.2.3" and stays
+// "dev" for local builds.
+var version = "dev"
 
 func main() {
 	app := NewApp()

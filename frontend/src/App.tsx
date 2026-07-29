@@ -2,6 +2,7 @@ import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {EventsOn} from "../wailsjs/runtime/runtime";
 import {
     GetState,
+    GetVersion,
     Reset,
     SetAlwaysOnTop,
     SetCurrentDuration,
@@ -139,6 +140,7 @@ function App() {
     const clockTyped = useRef("");
     const [squeezing, setSqueezing] = useState(false);
     const [helpOpen, setHelpOpen] = useState(false);
+    const [appVersion, setAppVersion] = useState("dev");
     // Escape unmounts the input, which also fires blur — the ref keeps that
     // blur from committing the discarded draft.
     const clockCancelled = useRef(false);
@@ -150,6 +152,7 @@ function App() {
 
     useEffect(() => {
         GetState().then(applyState);
+        GetVersion().then(setAppVersion);
 
         const offState = EventsOn("timer:state", (next: main.State) => {
             applyState(main.State.createFrom(next));
@@ -654,6 +657,9 @@ function App() {
                         ) : (
                             <p className="shortcuts__hint">{t.scOff}</p>
                         )}
+                        <p className="shortcuts__meta">
+                            t1mat0 {appVersion} · GPL-3.0
+                        </p>
                     </div>
                 )}
 

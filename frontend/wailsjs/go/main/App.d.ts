@@ -4,6 +4,8 @@ import {main} from '../models';
 
 export function GetState():Promise<main.State>;
 
+export function GetVersion():Promise<string>;
+
 export function HideWindow():Promise<void>;
 
 export function Pause():Promise<main.State>;
