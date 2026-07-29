@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import SnoozeZs from "./SnoozeZs";
 
 const COCKTAIL_TOP = 189;
 const COCKTAIL_BOTTOM = 212;
@@ -45,6 +46,8 @@ const WAVES = [
 ];
 
 type BeachSceneProps = {
+    /** Timer is paused: even the lagoon dozes off. */
+    paused?: boolean;
     /** 0 = break just started (sun high, glass full), 1 = break over. */
     progress: number;
     /** Fish only jump while the timer actually runs. */
@@ -53,7 +56,7 @@ type BeachSceneProps = {
     long: boolean;
 };
 
-function BeachScene({progress, running, long}: BeachSceneProps) {
+function BeachScene({progress, running, long, paused = false}: BeachSceneProps) {
     const [flopStage, setFlopStage] = useState<FlopStage>("hidden");
     const [landing, setLanding] = useState(randomLandingSpot);
 
@@ -166,6 +169,8 @@ function BeachScene({progress, running, long}: BeachSceneProps) {
                     </g>
                     <ellipse className="beach__water-rim" cx="100" cy="184" rx="62" ry="16"/>
                 </g>
+
+                {paused && <SnoozeZs x={140} y={176}/>}
 
                 <g className="beach__fish">
                     <g

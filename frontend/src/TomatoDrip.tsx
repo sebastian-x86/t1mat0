@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import SnoozeZs from "./SnoozeZs";
 
 const LEAF_ANGLES = [0, 72, 144, 216, 288];
 
@@ -21,6 +22,8 @@ const SPLATTER = [
 ];
 
 type TomatoDripProps = {
+    /** Timer is paused: the tomato takes a nap. */
+    paused?: boolean;
     /** 0 = phase just started (tomato full), 1 = phase over (glass full). */
     progress: number;
     /** Drops only fall while the timer actually runs. */
@@ -29,7 +32,7 @@ type TomatoDripProps = {
     squeezing?: boolean;
 };
 
-function TomatoDrip({progress, running, squeezing = false}: TomatoDripProps) {
+function TomatoDrip({progress, running, squeezing = false, paused = false}: TomatoDripProps) {
     const clamped = squeezing ? 1 : Math.min(1, Math.max(0, progress));
 
     // One drop per countdown step: every time the tomato loses a bit, a fresh
@@ -92,6 +95,8 @@ function TomatoDrip({progress, running, squeezing = false}: TomatoDripProps) {
                     />
 
                 </g>
+
+                {paused && <SnoozeZs x={132} y={34}/>}
 
                 <g className="drip__leaves">
                     {LEAF_ANGLES.map((angle) => (

@@ -63,8 +63,23 @@ Die Timer-Logik ist reines Go und hat keine GUI-Abhängigkeiten — die Tests
 laufen also auch ohne die apt-Pakete oben:
 
 ```bash
-go test ./...
+go test ./...                      # Timer, Settings, Ernte, Sprache
+go test ./... -cover               # mit Abdeckung
 ```
+
+Die Zeitlogik der Oberfläche (mm:ss parsen, Ziffern tippen, Mausrad-Schritte)
+steckt in `frontend/src/duration.ts` und ist frei von DOM-Zugriffen, damit sie
+mit Vitest geprüft werden kann:
+
+```bash
+cd frontend
+npm test                           # einmalig
+npm run test:watch                 # im Watch-Modus
+```
+
+Nicht getestet sind bewusst die Wails-Bindings selbst (Fenster, Tray,
+Benachrichtigungen) und die SVG-Szenen — beides braucht eine laufende Runtime
+bzw. ein Auge.
 
 ## Bedienung
 
@@ -253,9 +268,13 @@ go run ./tools/icongen build/appicon.png build/windows/icon.ico
 
 ```
 timer.go               Pomodoro-Zustandsmaschine (pure Go, unit-getestet)
-timer_test.go          Tests der Timer-Logik
+harvest.go             Tomaten-Zähler und Serie, Persistenz in harvest.json
+i18n.go                Übersetzungen und Spracherkennung (Go-Seite)
+lang_windows.go        OS-Sprache über GetUserDefaultLocaleName
+lang_other.go          OS-Sprache über LC_ALL/LC_MESSAGES/LANG
 settings.go            Laden/Speichern der Settings, Portable-Erkennung
 app.go                 Wails-Bindings, Ticker, Notifications, Fenstersteuerung
+*_test.go              Tests zu Timer, Settings, Ernte, Sprache und App
 main.go                Wails-App-Konfiguration
 tray_desktop.go        Tray-Menü (Windows/macOS, fyne.io/systray)
 tray_icon_windows.go   Tray-Icon für Windows (.ico)
@@ -263,7 +282,8 @@ tray_icon_darwin.go    Tray-Icon für macOS (.png)
 tray_stub.go           No-op-Tray für alle anderen Plattformen
 wails.json             Wails-Projektkonfiguration
 build/                 Icons, Installer-Vorlagen, Build-Artefakte
-frontend/src/          React-UI (App.tsx, App.css, sound.ts)
+frontend/src/          React-UI (App.tsx, App.css, sound.ts, i18n.ts)
+frontend/src/duration.ts   mm:ss-Logik der Uhr (mit Vitest getestet)
 frontend/wailsjs/      Generierte Go-Bindings (nicht manuell bearbeiten)
 ```
 
