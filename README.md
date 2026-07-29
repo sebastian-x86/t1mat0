@@ -1,7 +1,7 @@
 # t1mat0 — Pomodoro Timer
 
 [![CI](https://github.com/sebastian-x86/t1mat0/actions/workflows/ci.yml/badge.svg)](https://github.com/sebastian-x86/t1mat0/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-77.6%25-yellowgreen)](#3-ohne-gui-testen)
+[![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2Fsebastian-x86%2Ft1mat0%2Fbadges%2Fcoverage.json)](#3-ohne-gui-testen)
 [![Go](https://img.shields.io/badge/Go-1.25-00ADD8?logo=go&logoColor=white)](https://go.dev)
 [![Wails](https://img.shields.io/badge/Wails-v2.13-d32f2f)](https://wails.io)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
@@ -98,8 +98,9 @@ go test ./...                      # Timer, Settings, Ernte, Sprache
 go test ./... -cover               # mit Abdeckung (aktuell ~78 %)
 ```
 
-Der Coverage-Badge oben wird von der CI nach jedem Push auf `main` neu
-geschrieben; fällt die Abdeckung unter 70 %, schlägt der Build fehl.
+Der Coverage-Badge oben liest seinen Wert aus dem Branch `badges`, den die CI
+nach jedem Merge auf `main` neu schreibt; fällt die Abdeckung unter 70 %,
+schlägt der Build fehl.
 
 Abgedeckt sind die Zustandsmaschine (Phasenwechsel, Tick, Auto-Start), die
 Validierung aller Zeitwerte, das Laden und Speichern von `settings.json` und

@@ -48,6 +48,23 @@ gezählt — so sieht es SemVer für die Nullerserie vor.
 `commitlint` prüft das in der CI. Ein kaputter Betreff lässt den Build
 fehlschlagen.
 
+## Branch und Pull Requests
+
+`main` ist geschützt: kein direkter Push, kein Force-Push, kein Löschen — auch
+nicht für Administratoren. Jede Änderung läuft über einen Pull Request, der
+grüne CI braucht (Commit-Nachrichten, Go-Tests, Frontend-Tests). Reviews sind
+nicht vorgeschrieben, ein Selbst-Merge nach grüner CI ist also in Ordnung.
+
+```bash
+git switch -c feat/kurze-beschreibung
+# ... arbeiten, committen ...
+git push -u origin HEAD
+gh pr create --fill
+gh pr merge --squash --delete-branch    # sobald die CI grün ist
+```
+
+Die Historie bleibt linear (Squash oder Rebase, kein Merge-Commit).
+
 ## Release-Ablauf
 
 1. Commits landen auf `main`.

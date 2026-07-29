@@ -101,14 +101,16 @@ jobs:
         run: npm run build
 
   badge:
-    name: Update coverage badge
+    name: Publish coverage badge
     needs: [go, frontend]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Rewrite the badge in the README
+      # main is protected, so the badge value lives on its own orphan branch
+      # and shields.io reads it from there.
+      - name: Publish the coverage endpoint
         env:
           PERCENT: ${{ needs.go.outputs.coverage }}
         run: |
@@ -116,15 +118,25 @@ jobs:
           awk "BEGIN {exit !($PERCENT >= 60)}" && colour=orange
           awk "BEGIN {exit !($PERCENT >= 75)}" && colour=yellowgreen
           awk "BEGIN {exit !($PERCENT >= 85)}" && colour=brightgreen
-          sed -i -E "s|coverage-[0-9.]+%25-[a-z]+|coverage-${PERCENT}%25-${colour}|" README.md
 
-      - name: Commit when the number moved
-        run: |
-          if git diff --quiet README.md; then
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin badges || true
+          if git show-ref --quiet refs/remotes/origin/badges; then
+            git checkout -B badges origin/badges
+          else
+            git checkout --orphan badges
+            git rm -rf --quiet .
+          fi
+
+          printf '{"schemaVersion":1,"label":"coverage","message":"%s%%","color":"%s"}\n' \
+            "$PERCENT" "$colour" > coverage.json
+
+          git add coverage.json
+          if git diff --cached --quiet; then
             echo "Badge already up to date."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "docs: update coverage badge to ${{ needs.go.outputs.coverage }}% [skip ci]" README.md
-          git push
+          git commit -m "chore: coverage $PERCENT%"
+          git push origin badges
