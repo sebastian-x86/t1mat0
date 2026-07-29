@@ -222,6 +222,13 @@ Was in der Fenstermitte passiert, hängt von Phase und Status ab:
 Die Fortschrittsleiste läuft in Arbeitsphasen vorwärts und in Pausen rückwärts,
 damit „die Pause schrumpft" auch am Balken ablesbar ist.
 
+| | |
+| --- | --- |
+| ![Kurze Pause: Strandszene mit Sonne, Cocktailglas und einem springenden Fisch, grüne Fortschrittsleiste](docs/screenshot-break.png) | ![Angehaltene Pause: über dem Wasser steigen kleine „z“ auf, der Knopf zeigt „Weiter“](docs/screenshot-paused.png) |
+| Kurze Pause — Strand statt Tomate | Angehalten — die Szene schläft mit |
+| ![Geöffnetes Zahnrad-Menü mit den Feldern Arbeit, Kurze Pause, Lange Pause und Lange Pause alle sowie der Sprachauswahl mit Flaggen](docs/screenshot-settings.png) | ![Übersicht der Tastenkürzel mit Version und Lizenz am unteren Rand](docs/screenshot-shortcuts.png) |
+| Einstellungen — Dauern und Sprache | `F1` — alle Tastenkürzel auf einen Blick |
+
 ## Sprache
 
 Die Oberfläche, das Tray-Menü und die Benachrichtigungen gibt es auf **Deutsch
