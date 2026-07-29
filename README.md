@@ -16,8 +16,28 @@ aktuellen Phase (rot = Arbeit, grün = kurze Pause, blau = lange Pause).
 Der Name ist eine Kreuzung aus *timer* und *tomato* — die Tomate ist das
 Namensgebende der Pomodoro-Technik.
 
-**Stack:** Go (Timer-Logik, native Integrationen) + React/TypeScript (UI), gebaut mit [Wails v2](https://wails.io).
+**Stack:** Go (Timer-Logik, Tray, Benachrichtigungen, Persistenz) +
+React/TypeScript (Oberfläche, SVG-Szenen), zusammengebaut mit
+[Wails v2](https://wails.io) zu einer einzelnen nativen Binary — kein
+Electron, keine Laufzeitumgebung, keine Installation nötig.
 **Zielplattformen:** Windows und macOS. Linux funktioniert zum Entwickeln, aber ohne Tray (siehe [Plattform-Unterschiede](#plattform-unterschiede)).
+
+### Auf einen Blick
+
+- **Zeit als Bild:** Tomate leert sich, Glas füllt sich; in der Pause eine
+  Strandszene mit springenden Fischen (siehe [Szenen](#szenen))
+- **Zweisprachig:** Deutsch und Englisch, automatisch nach OS-Sprache
+  (siehe [Sprache](#sprache))
+- **Komplett per Tastatur bedienbar**, mit abschaltbaren Ein-Tasten-Kürzeln
+  (siehe [Tastatur](#tastatur))
+- **Barrierefrei gedacht:** Live-Region, ARIA-Rollen, sichtbarer Fokus,
+  `prefers-reduced-motion` (siehe [Barrierefreiheit](#barrierefreiheit))
+- **Sekundengenaue Zeiten**, direkt im Uhrenfeld editierbar — tippen oder
+  scrollen (siehe [Zeit direkt ändern](#zeit-direkt-ändern))
+- **Kleine Belohnung:** gesammelte Tomaten und Serien
+  (siehe [Tomaten sammeln](#tomaten-sammeln))
+- **Portabel:** läuft ohne Installation vom USB-Stick
+  (siehe [Portable Modus](#portable-modus))
 
 ## Quickstart
 
@@ -64,8 +84,13 @@ laufen also auch ohne die apt-Pakete oben:
 
 ```bash
 go test ./...                      # Timer, Settings, Ernte, Sprache
-go test ./... -cover               # mit Abdeckung
+go test ./... -cover               # mit Abdeckung (aktuell ~78 %)
 ```
+
+Abgedeckt sind die Zustandsmaschine (Phasenwechsel, Tick, Auto-Start), die
+Validierung aller Zeitwerte, das Laden und Speichern von `settings.json` und
+`harvest.json` inklusive kaputter, unvollständiger und veralteter Dateien
+sowie die App-Methoden, die das Frontend aufruft.
 
 Die Zeitlogik der Oberfläche (mm:ss parsen, Ziffern tippen, Mausrad-Schritte)
 steckt in `frontend/src/duration.ts` und ist frei von DOM-Zugriffen, damit sie
@@ -83,16 +108,42 @@ bzw. ein Auge.
 
 ## Bedienung
 
+In der unteren Zeile sitzen alle Bedienelemente: der breite Start-/Pause-Button,
+daneben zwei Icon-Buttons (Kreispfeil = zurücksetzen, Doppelpfeil =
+überspringen), dahinter `?` für die Kurzbefehle und das Zahnrad für die
+Einstellungen. Die Icon-Buttons tragen ihre Beschriftung im Tooltip — so passt
+die Zeile in jeder Sprache ins Fenster.
+
 | Aktion | Fenster | Tray (Windows/macOS) |
 | --- | --- | --- |
-| Start / Pause | Button `Start` / `Pause` | Menüeintrag |
-| Zurücksetzen | Button `Reset` | Menüeintrag |
-| Phase überspringen | Button `Skip` | Menüeintrag |
-| Always on Top | Checkbox | Checkbox |
-| Sound an/aus | Checkbox | Checkbox |
-| Zeiten ändern | Zahnrad rechts oben | — |
+| Start / Pause | Button `Start` / `Pause` / `Weiter` | Menüeintrag |
+| Zurücksetzen | Icon-Button (Kreispfeil) | Menüeintrag |
+| Phase überspringen | Icon-Button (Doppelpfeil) | Menüeintrag |
+| Dauer der Phase ändern | Klick auf die Uhr | — |
+| Einstellungen | Zahnrad unten rechts | — |
+| Kurzbefehle anzeigen | Button `?` | — |
+| Always on Top | Checkbox (Zahnrad-Menü) | Checkbox |
+| Sound an/aus | Checkbox (Zahnrad-Menü) | Checkbox |
+| Sprache | Flaggen-Auswahl (Zahnrad-Menü) | — |
 | Fenster ein-/ausblenden | — | `Show / Hide` |
 | Beenden | — | `Quit` |
+
+### Zeit direkt ändern
+
+Ein Klick auf die Restzeit (oder `F2`) macht daraus ein `mm:ss`-Feld, das sich
+wie ein Uhren-Widget verhält:
+
+- **Tippen ohne Doppelpunkt:** Ziffern füllen erst die Minuten und springen
+  nach zwei Stellen selbst zu den Sekunden. Sekunden laufen nie über `59`.
+- **Mausrad:** über den Minuten ändert es die Minuten, über den Sekunden die
+  Sekunden. `Shift` erzwingt Sekundenschritte.
+- **Pfeiltasten:** `←`/`→` wechseln das Segment, `↑`/`↓` ändern es um eins.
+- `Enter` übernimmt, `Esc` verwirft. Buchstaben werden gar nicht erst
+  angenommen.
+
+Die neue Dauer gilt sofort für die laufende Phase und wird als neuer Standard
+für diesen Phasentyp gespeichert. Dasselbe Mausrad-Verhalten haben auch die
+Felder im Einstellungsmenü.
 
 ### Tastatur
 
@@ -123,9 +174,38 @@ Diese Buchstaben-Kürzel lassen sich in den Einstellungen über
 Sprachsteuerung und Screenreader einzelne Buchstaben ungewollt auslösen. Die
 Kürzel mit `Ctrl` bzw. `F1`/`F2` bleiben davon unberührt.
 
-Für Screenreader meldet eine Live-Region Phase, Status und Restzeit; die
-Fortschrittsleiste ist als `progressbar` ausgezeichnet, die Animationen sind
-als dekorativ ausgeblendet und respektieren `prefers-reduced-motion`.
+## Barrierefreiheit
+
+Die App ist ohne Maus vollständig bedienbar und für Screenreader ausgezeichnet:
+
+- **Live-Region** (`role="status"`, `aria-live="polite"`) meldet Phase, Status
+  und Restzeit, ohne die Vorlesereihenfolge zu unterbrechen.
+- **Fortschrittsleiste** als `role="progressbar"` mit `aria-valuenow` und einem
+  gesprochenen `aria-valuetext` („45 Prozent, 12:30 verbleibend").
+- **Icon-Buttons** tragen `aria-label` und `title`, die Sprachauswahl ist eine
+  `radiogroup`, das Einstellungsmenü ein `role="dialog"` mit Fokusführung
+  hinein und zurück, Fehlermeldungen sind `role="alert"`.
+- **Sichtbarer Fokus** über `:focus-visible`, `Esc` schließt jedes Overlay.
+- **Dekoration bleibt stumm:** die SVG-Szenen sind `aria-hidden`.
+- **`prefers-reduced-motion`** schaltet Animationen ab — die schlafenden „z"
+  stehen still und das Zermatschen der Tomate beim Überspringen entfällt
+  komplett (WCAG 2.1 SC 2.3.3).
+- **Ein-Tasten-Kürzel sind abschaltbar** (WCAG 2.1 SC 2.1.4, siehe oben).
+
+## Szenen
+
+Was in der Fenstermitte passiert, hängt von Phase und Status ab:
+
+| Situation | Szene |
+| --- | --- |
+| Arbeitsphase | Tomate leert sich in ein Glas, Farbe rot |
+| Kurze Pause | Strand mit Sonne, Cocktail und springenden Fischen, grün |
+| Lange Pause | dieselbe Strandszene, ruhiger und blau |
+| Angehalten | kleine „z" steigen auf — aus der Tomate bzw. aus dem Wasser |
+| Arbeitsphase übersprungen | ein Fuß zertritt die Tomate ins Glas |
+
+Die Fortschrittsleiste läuft in Arbeitsphasen vorwärts und in Pausen rückwärts,
+damit „die Pause schrumpft" auch am Balken ablesbar ist.
 
 ## Sprache
 
@@ -231,9 +311,14 @@ Unter WSL2 daher am besten die Windows-Exe testen (siehe
 
 ## Einstellungen
 
-Die Einstellungen stecken hinter dem roten Zahnrad oben rechts: Dauern,
-Long-Break-Intervall, Always on Top und Sound. Die Restzeit lässt sich auch
-direkt anklicken und im Uhrenfeld überschreiben.
+Die Einstellungen klappen aus dem Zahnrad unten rechts nach oben auf: Dauern,
+Long-Break-Intervall, Sprache, Always on Top, Sound und die Ein-Tasten-Kürzel.
+Die Restzeit lässt sich zusätzlich direkt im Uhrenfeld überschreiben (siehe
+[Zeit direkt ändern](#zeit-direkt-ändern)).
+
+Gespeichert wird in `settings.json` — unter Windows in
+`%AppData%\t1mat0\`, unter Linux in `~/.config/t1mat0/`, im portablen Modus
+neben der Binary.
 
 | Einstellung | Default | Bedeutung |
 | --- | --- | --- |
@@ -282,8 +367,12 @@ tray_icon_darwin.go    Tray-Icon für macOS (.png)
 tray_stub.go           No-op-Tray für alle anderen Plattformen
 wails.json             Wails-Projektkonfiguration
 build/                 Icons, Installer-Vorlagen, Build-Artefakte
-frontend/src/          React-UI (App.tsx, App.css, sound.ts, i18n.ts)
+frontend/src/          React-UI: App.tsx (Fenster), App.css, sound.ts
+frontend/src/i18n.ts   Deutsch/Englisch-Wörterbuch der Oberfläche
 frontend/src/duration.ts   mm:ss-Logik der Uhr (mit Vitest getestet)
+frontend/src/*Scene/Drip   SVG-Szenen: TomatoDrip, BeachScene, SnoozeZs
+frontend/src/HarvestHud.tsx     Tomatenzähler mit Serien-Badge
+frontend/src/LanguagePicker.tsx Sprachauswahl mit Flaggen
 frontend/wailsjs/      Generierte Go-Bindings (nicht manuell bearbeiten)
 ```
 
