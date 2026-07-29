@@ -6,6 +6,8 @@
 [![Wails](https://img.shields.io/badge/Wails-v2.13-d32f2f)](https://wails.io)
 [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev)
 [![Plattformen](https://img.shields.io/badge/Windows%20%7C%20macOS-informational)](#plattform-unterschiede)
+[![Release](https://img.shields.io/github/v/release/sebastian-x86/t1mat0?display_name=tag&sort=semver)](https://github.com/sebastian-x86/t1mat0/releases/latest)
+[![Lizenz](https://img.shields.io/badge/Lizenz-GPL--3.0-blue)](LICENSE)
 
 **t1mat0** ist ein kleiner Desktop-Pomodoro-Timer, der die verbleibende Zeit
 nicht nur als Zahl zeigt, sondern als Tomate, die sich langsam in ein Glas
@@ -278,6 +280,26 @@ Tipp: Läuft spürbar schneller, wenn die Exe im Windows-Dateisystem liegt:
 cp build/bin/t1m.exe /mnt/c/temp/ && /mnt/c/temp/t1m.exe
 ```
 
+## Releases und Versionierung
+
+Fertige Binaries hängen an den
+[Releases](https://github.com/sebastian-x86/t1mat0/releases/latest):
+`t1mat0-vX.Y.Z-windows-amd64.exe` und ein universelles macOS-Bundle als ZIP.
+Beide sind nicht signiert — Windows SmartScreen und macOS Gatekeeper wollen
+beim ersten Start eine Bestätigung.
+
+Versioniert wird nach [SemVer](https://semver.org), erzeugt aus den
+Commit-Nachrichten ([Conventional Commits](https://www.conventionalcommits.org)):
+
+- `fix:` → Patch, `feat:` → Minor, `feat!:`/`BREAKING CHANGE:` → Major
+- `release-please` sammelt die Commits auf `main` in einer Release-PR mit
+  Versionsbump und `CHANGELOG.md`
+- Wird sie gemergt, entstehen Tag und Release, und die CI baut und veröffentlicht
+  die Binaries
+- Die eingebaute Version steht in der Kurzbefehl-Übersicht (`F1`)
+
+Details und die Regeln für Beiträge stehen in [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Bauen
 
 ```bash
@@ -378,6 +400,10 @@ tray_icon_windows.go   Tray-Icon für Windows (.ico)
 tray_icon_darwin.go    Tray-Icon für macOS (.png)
 tray_stub.go           No-op-Tray für alle anderen Plattformen
 wails.json             Wails-Projektkonfiguration
+version.txt            Aktuelle Version, gepflegt von release-please
+CHANGELOG.md           Automatisch aus den Commit-Nachrichten erzeugt
+CONTRIBUTING.md        Commit-Konvention, Tests, Release-Ablauf
+.github/workflows/     CI (Tests, Coverage-Badge) und Release (Binaries)
 build/                 Icons, Installer-Vorlagen, Build-Artefakte
 frontend/src/          React-UI: App.tsx (Fenster), App.css, sound.ts
 frontend/src/i18n.ts   Deutsch/Englisch-Wörterbuch der Oberfläche
@@ -394,3 +420,9 @@ generieren:
 ```bash
 ~/go/bin/wails generate module
 ```
+
+## Lizenz
+
+[GPL-3.0](LICENSE) — nutzen, ändern und weitergeben ist ausdrücklich erwünscht;
+wer eine veränderte Fassung verteilt, muss deren Quellcode ebenfalls unter
+GPL-3.0 offenlegen.
