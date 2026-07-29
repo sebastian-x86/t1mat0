@@ -9,6 +9,20 @@ permissions:
   contents: write
 
 jobs:
+  commits:
+    name: Commit messages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Conventional Commits are what release-please reads to work out the
+      # next version, so a sloppy subject line silently costs a release.
+      - uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: commitlint.config.mjs
+
   go:
     name: Go tests
     runs-on: ubuntu-latest

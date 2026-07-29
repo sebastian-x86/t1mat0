@@ -1,0 +1,95 @@
+name: Release
+
+# release-please turns the Conventional Commits on main into a release PR.
+# Merging that PR tags the version, which is what actually builds the binaries.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.release.outputs.release_created }}
+      tag: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  windows:
+    name: Windows build
+    needs: release-please
+    if: needs.release-please.outputs.released == 'true'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      - name: Build
+        run: wails build -platform windows/amd64 -ldflags "-X main.version=${{ needs.release-please.outputs.tag }}"
+
+      - name: Rename for the release page
+        run: Move-Item build/bin/t1m.exe t1mat0-${{ needs.release-please.outputs.tag }}-windows-amd64.exe
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ needs.release-please.outputs.tag }} t1mat0-${{ needs.release-please.outputs.tag }}-windows-amd64.exe --clobber
+
+  macos:
+    name: macOS build
+    needs: release-please
+    if: needs.release-please.outputs.released == 'true'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+
+      # Universal so the bundle runs on Intel and Apple Silicon. The app is not
+      # signed, so Gatekeeper needs a right click on first start.
+      - name: Build
+        run: wails build -platform darwin/universal -ldflags "-X main.version=${{ needs.release-please.outputs.tag }}"
+
+      - name: Pack the app bundle
+        run: |
+          cd build/bin
+          zip -r -y ../../t1mat0-${{ needs.release-please.outputs.tag }}-macos-universal.zip t1m.app
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ needs.release-please.outputs.tag }} t1mat0-${{ needs.release-please.outputs.tag }}-macos-universal.zip --clobber
