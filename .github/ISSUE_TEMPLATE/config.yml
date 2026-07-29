@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Frage oder Idee zum Austauschen
+    url: https://github.com/sebastian-x86/t1mat0/discussions
+    about: Für alles, was noch kein konkreter Fehler oder Vorschlag ist.
+  - name: Sicherheitslücke melden
+    url: https://github.com/sebastian-x86/t1mat0/security/advisories/new
+    about: Bitte nicht öffentlich als Issue melden.
