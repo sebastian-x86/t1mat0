@@ -300,6 +300,8 @@ Commit-Nachrichten ([Conventional Commits](https://www.conventionalcommits.org))
 - Die eingebaute Version steht in der Kurzbefehl-Übersicht (`F1`)
 
 Details und die Regeln für Beiträge stehen in [CONTRIBUTING.md](CONTRIBUTING.md).
+Es gilt der [Verhaltenskodex](CODE_OF_CONDUCT.md). Sicherheitslücken bitte
+nicht öffentlich melden, sondern wie in [SECURITY.md](SECURITY.md) beschrieben.
 
 ## Bauen
 
@@ -404,7 +406,8 @@ wails.json             Wails-Projektkonfiguration
 version.txt            Aktuelle Version, gepflegt von release-please
 CHANGELOG.md           Automatisch aus den Commit-Nachrichten erzeugt
 CONTRIBUTING.md        Commit-Konvention, Tests, Release-Ablauf
-.github/workflows/     CI (Tests, Coverage-Badge) und Release (Binaries)
+SECURITY.md            Wie Sicherheitslücken gemeldet werden
+.github/workflows/     CI (Tests, Coverage-Badge), CodeQL und Release
 build/                 Icons, Installer-Vorlagen, Build-Artefakte
 frontend/src/          React-UI: App.tsx (Fenster), App.css, sound.ts
 frontend/src/i18n.ts   Deutsch/Englisch-Wörterbuch der Oberfläche

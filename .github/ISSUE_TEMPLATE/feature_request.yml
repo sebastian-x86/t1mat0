@@ -1,0 +1,31 @@
+name: Idee vorschlagen
+description: Eine neue Funktion oder eine Verbesserung
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Welches Problem löst das?
+      description: |
+        Beschreibe die Situation, in der dir heute etwas fehlt. Das sagt mehr
+        als eine fertige Lösung.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Wie könnte es aussehen?
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Passt es zum Projekt?
+      description: |
+        t1mat0 soll ein kleiner, lokaler Timer bleiben: kein Konto, kein
+        Netzwerk, keine Statistik-Cloud.
+      options:
+        - label: Die Idee kommt ohne Nutzerkonto und ohne Serverdienst aus.
+          required: true

@@ -1,0 +1,62 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Neue Regeln erscheinen laufend, deshalb einmal pro Woche auch ohne
+    # Änderung am Code.
+    - cron: "37 4 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+
+    # Der Autobuild ruft `go build` ohne eigene Flags auf. Ohne diesen Tag
+    # sucht die Wails-Runtime nach webkit2gtk-4.0, das es auf dem Runner nicht
+    # mehr gibt.
+    env:
+      GOFLAGS: -tags=webkit2_41
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: go
+            build-mode: autobuild
+          - language: javascript-typescript
+            build-mode: none
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # main.go bindet frontend/dist per go:embed ein. Der Ordner wird gebaut
+      # und nicht eingecheckt, ohne Platzhalter scheitert schon das Kompilieren.
+      - name: Stub the embedded assets
+        if: matrix.language == 'go'
+        run: |
+          mkdir -p frontend/dist
+          echo '<!doctype html><title>codeql build</title>' > frontend/dist/index.html
+
+      - name: Install GUI headers
+        if: matrix.language == 'go'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - uses: github/codeql-action/analyze@v3
+        with:
+          category: /language:${{ matrix.language }}
