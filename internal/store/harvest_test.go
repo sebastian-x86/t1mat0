@@ -11,7 +11,7 @@ import (
 func TestSaveAndLoadHarvestRoundTrip(t *testing.T) {
 	isolateConfig(t)
 
-	want := timer.Harvest{Tomatoes: 12, Streak: 3, BestStreak: 7}
+	want := timer.Harvest{Tomatoes: 12, Total: 20, Day: "2026-07-30", Streak: 3, BestStreak: 7}
 	if err := SaveHarvest(want); err != nil {
 		t.Fatalf("save: %v", err)
 	}
@@ -30,8 +30,9 @@ func TestLoadHarvestEmptyWhenMissing(t *testing.T) {
 
 func TestLoadHarvestRejectsBrokenOrNegativeFile(t *testing.T) {
 	for name, content := range map[string]string{
-		"broken":   "{oops",
-		"negative": `{"tomatoes": -3}`,
+		"broken":         "{oops",
+		"negative":       `{"tomatoes": -3}`,
+		"negative total": `{"tomatoes": 1, "total": -1}`,
 	} {
 		t.Run(name, func(t *testing.T) {
 			dir := isolateConfig(t)

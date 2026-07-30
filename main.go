@@ -30,9 +30,9 @@ func main() {
 
 	err := wails.Run(&options.App{
 		Title:         "t1mat0",
-		Width:         400,
+		Width:         470,
 		Height:        620,
-		MinWidth:      360,
+		MinWidth:      430,
 		MinHeight:     560,
 		DisableResize: false,
 		// Closing is handled in OnBeforeClose so the window only hides when a

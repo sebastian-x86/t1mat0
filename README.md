@@ -426,7 +426,9 @@ Unter WSL2 daher am besten die Windows-Exe testen (siehe
 
 Die Einstellungen klappen aus dem Zahnrad unten rechts nach oben auf: Dauern,
 Long-Break-Intervall, Sprache, Design, Always on Top, Sound,
-Benachrichtigungen, das Verhalten beim Schließen und die Ein-Tasten-Kürzel.
+Benachrichtigungen, Verlaufserfassung, das Verhalten beim Schließen und die
+Ein-Tasten-Kürzel. Der Arbeitszeit-Rahmen wird nicht hier, sondern im Tab
+„Arbeitszeit“ der Auswertung gepflegt (siehe [Auswertung](#auswertung)).
 Die Restzeit lässt sich zusätzlich direkt im Uhrenfeld überschreiben (siehe
 [Zeit direkt ändern](#zeit-direkt-ändern)).
 
@@ -443,6 +445,11 @@ neben der Binary.
 | `language` | "auto" | Sprache: `auto` (vom System), `de` oder `en` |
 | `theme` | "auto" | Design: `auto` (vom System), `light` oder `dark` |
 | `notificationsEnabled` | true | Benachrichtigung beim Phasenende |
+| `historyEnabled` | false | Verlaufserfassung (legt `history.json` an) |
+| `historyRetentionDays` | 30 | Aufbewahrung der Rohereignisse in Tagen |
+| `historyPrompted` | false | Einmalige Opt-in-Abfrage wurde bereits gezeigt |
+| `workHoursEnabled` | false | Arbeitszeit-Rahmen für Auswertungskennzahlen aktiv |
+| `workHours` | leer | Start/Ende/Fixpausen pro Wochentag; ohne angelegten Tag |
 | `closeToTray` | true | Schließen versteckt das Fenster im Infobereich, statt zu beenden |
 | `alwaysOnTop` | false | Fenster immer im Vordergrund |
 | `soundEnabled` | true | Chime bei Phasenwechsel |
@@ -457,6 +464,33 @@ Alle Zeitwerte werden im Backend validiert (1 Sekunde bis 600 Minuten).
 Ältere `settings.json` mit `workMinutes`/`shortBreakMinutes`/`longBreakMinutes`
 werden beim Laden automatisch auf Sekunden migriert.
 
+## Auswertung
+
+Ein Klick auf die Tomatenanzeige öffnet die Tagesauswertung als Vollbildansicht
+im selben Fenster. Sie zeigt Zeitband, Kennzahlen (Tomaten heute, 7-Tage-
+Schnitt, Durchhaltequote, Pausenwerte, Serien) und stündliche Arbeitslast. Die
+Phasenliste darunter ist eingeklappt und enthält auch den Export als CSV oder
+JSON. Mit aktivem Arbeitszeit-Rahmen kommen Abdeckung, Arbeit in fixer
+Pausenzeit und Arbeit nach Feierabend dazu.
+
+### Verlauf
+
+Die Erfassung ist Opt-in: Ohne Zustimmung wird nichts mitgeschrieben. Beim
+ersten Öffnen fragt die App einmalig nach. Gespeichert werden ausschließlich
+Phasenzeiten, lokal in `history.json` neben der `settings.json`. Rohereignisse
+werden nach `historyRetentionDays` verdichtet; der Verlauf lässt sich in den
+Einstellungen jederzeit löschen.
+
+### Arbeitszeit
+
+Der Tab „Arbeitszeit“ pflegt den Bezugsrahmen. Neue Installationen starten ohne
+Wochentag; „Tag hinzufügen“ legt einen an und übernimmt die Zeiten des zuletzt
+angelegten Tages, sonst `08:00–16:30` mit Pause `12:00–12:30`. Feste Pausen
+stehen als ein Textfeld pro Tag: Bereiche wie `12-12:30` oder `12:00-13`,
+getrennt mit `;` oder `,`. Änderungen speichern sich selbst, ein Speichern-Knopf
+entfällt. Ohne die Checkbox „Arbeitszeiten berücksichtigen“ bleiben die Angaben
+ohne Wirkung auf die Auswertung.
+
 ## Icon
 
 App-, Taskleisten- und Tray-Icon sind eine gerenderte Tomate. Die Dateien
@@ -469,8 +503,11 @@ go run ./tools/icongen build/appicon.png build/windows/icon.ico
 ## Projektstruktur
 
 ```
-internal/timer/        Pomodoro-Zustandsmaschine, Settings und Ernte (pure Go)
-internal/store/        Laden/Speichern von Settings und Ernte, Portable-Erkennung
+internal/timer/        Pomodoro-Zustandsmaschine, Settings, Ernte und
+                       Arbeitszeit-Rahmen (pure Go)
+internal/history/      Verlaufsmodell, Tracker, Kennzahlen und Export
+internal/store/        Laden/Speichern von Settings, Ernte und Verlauf,
+                       Portable-Erkennung
 internal/i18n/         Übersetzungen und Spracherkennung (Go-Seite)
 internal/tray/         Tray-Menü (Windows/macOS, fyne.io/systray) plus No-op-Stub
 app.go                 Wails-Bindings, Ticker, Notifications, Fenstersteuerung
@@ -488,7 +525,8 @@ SECURITY.md            Wie Sicherheitslücken gemeldet werden
 build/                 Icons, Installer-Vorlagen, Build-Artefakte
 frontend/src/App.tsx   React-Wurzel: Zustand, Szenenauswahl, Verdrahtung
 frontend/src/components/   Clock, SettingsPanel, ShortcutHelp, ActionBar,
-                       HarvestHud, LanguagePicker, ThemePicker und die SVG-Szenen
+                       HarvestHud, ReportView, ConfirmDialog, LanguagePicker,
+                       ThemePicker und die SVG-Szenen
                        TomatoDrip, BeachScene, SnoozeZs — Styles je Komponente
                        daneben (z. B. Clock.css)
 frontend/src/hooks/    useClockEdit, useShortcuts, useWheel
@@ -499,6 +537,7 @@ frontend/src/styles/   theme.css (Farbtokens hell/dunkel), base.css (Fenster,
                        und a11y.css (Fokus)
 frontend/src/i18n.ts   Deutsch/Englisch-Wörterbuch der Oberfläche
 frontend/src/duration.ts   mm:ss-Logik der Uhr (mit Vitest getestet)
+frontend/src/workhours.ts  Parser des Pausenfeldes (mit Vitest getestet)
 frontend/wailsjs/      Generierte Go-Bindings (nicht manuell bearbeiten)
 ```
 

@@ -14,7 +14,7 @@ func TestHarvestEarnedOnCompletedWork(t *testing.T) {
 	if !result.Harvested {
 		t.Fatalf("expected a harvested tomato")
 	}
-	if got := result.State.Harvest; got.Tomatoes != 1 || got.Streak != 1 || got.BestStreak != 1 {
+	if got := result.State.Harvest; got.Tomatoes != 1 || got.Total != 1 || got.Streak != 1 || got.BestStreak != 1 {
 		t.Fatalf("unexpected harvest: %+v", got)
 	}
 }
@@ -29,7 +29,7 @@ func TestSkippedWorkBreaksStreakButKeepsTomatoes(t *testing.T) {
 
 	machine.Skip() // leave the break, back to a work phase
 	state, _ := machine.Skip()
-	if state.Harvest.Tomatoes != 1 {
+	if state.Harvest.Tomatoes != 1 || state.Harvest.Total != 1 {
 		t.Fatalf("tomatoes should survive a skip, got %d", state.Harvest.Tomatoes)
 	}
 	if state.Harvest.Streak != 0 {

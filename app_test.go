@@ -7,7 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
+	"t1m/internal/history"
 	"t1m/internal/i18n"
 	"t1m/internal/store"
 	"t1m/internal/timer"
@@ -75,7 +77,8 @@ func TestNewAppRestoresPersistedState(t *testing.T) {
 	if err := store.SaveSettings(settings); err != nil {
 		t.Fatalf("save settings: %v", err)
 	}
-	if err := store.SaveHarvest(timer.Harvest{Tomatoes: 4, Streak: 2, BestStreak: 6}); err != nil {
+	day := history.LocalDay(time.Now())
+	if err := store.SaveHarvest(timer.Harvest{Tomatoes: 4, Total: 10, Day: day, Streak: 2, BestStreak: 6}); err != nil {
 		t.Fatalf("save harvest: %v", err)
 	}
 
@@ -83,7 +86,7 @@ func TestNewAppRestoresPersistedState(t *testing.T) {
 	if state.Settings.WorkSeconds != 90 {
 		t.Fatalf("expected the persisted duration, got %d", state.Settings.WorkSeconds)
 	}
-	if state.Harvest.Tomatoes != 4 || state.Harvest.BestStreak != 6 {
+	if state.Harvest.Tomatoes != 4 || state.Harvest.Total != 10 || state.Harvest.BestStreak != 6 {
 		t.Fatalf("expected the persisted harvest, got %+v", state.Harvest)
 	}
 	if state.PhaseLabel != "Arbeit" {
@@ -111,7 +114,8 @@ func TestAppToggleSwitchesStatus(t *testing.T) {
 
 func TestAppSkipPersistsTheBrokenStreak(t *testing.T) {
 	isolateConfig(t)
-	if err := store.SaveHarvest(timer.Harvest{Tomatoes: 3, Streak: 3, BestStreak: 3}); err != nil {
+	day := history.LocalDay(time.Now())
+	if err := store.SaveHarvest(timer.Harvest{Tomatoes: 3, Total: 8, Day: day, Streak: 3, BestStreak: 3}); err != nil {
 		t.Fatalf("save harvest: %v", err)
 	}
 
@@ -123,14 +127,15 @@ func TestAppSkipPersistsTheBrokenStreak(t *testing.T) {
 	if stored.Streak != 0 {
 		t.Fatalf("streak should be persisted as zero, got %d", stored.Streak)
 	}
-	if stored.Tomatoes != 3 || stored.BestStreak != 3 {
+	if stored.Tomatoes != 3 || stored.Total != 8 || stored.BestStreak != 3 {
 		t.Fatalf("tomatoes and best streak should survive, got %+v", stored)
 	}
 }
 
 func TestAppResetPersistsTheHarvest(t *testing.T) {
 	isolateConfig(t)
-	if err := store.SaveHarvest(timer.Harvest{Tomatoes: 2, Streak: 2, BestStreak: 5}); err != nil {
+	day := history.LocalDay(time.Now())
+	if err := store.SaveHarvest(timer.Harvest{Tomatoes: 2, Total: 9, Day: day, Streak: 2, BestStreak: 5}); err != nil {
 		t.Fatalf("save harvest: %v", err)
 	}
 
@@ -141,7 +146,7 @@ func TestAppResetPersistsTheHarvest(t *testing.T) {
 		t.Fatalf("reset should return to an idle work phase, got %q/%q", state.Status, state.Phase)
 	}
 	stored := readHarvestFile(t)
-	if stored.Streak != 0 || stored.Tomatoes != 2 {
+	if stored.Streak != 0 || stored.Tomatoes != 2 || stored.Total != 9 {
 		t.Fatalf("unexpected stored harvest: %+v", stored)
 	}
 }
