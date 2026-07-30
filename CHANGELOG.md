@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.2.0](https://github.com/sebastian-x86/t1mat0/compare/t1mat0-v0.1.0...t1mat0-v0.2.0) (2026-07-30)
+
+
+### Features
+
+* **settings:** make closing to the notification area optional ([#38](https://github.com/sebastian-x86/t1mat0/issues/38)) ([d2ecdfd](https://github.com/sebastian-x86/t1mat0/commit/d2ecdfd51ddad7b3abaeae512fbbd71ffd4360e4))
+* **ui:** add a light theme ([#36](https://github.com/sebastian-x86/t1mat0/issues/36)) ([319f8b6](https://github.com/sebastian-x86/t1mat0/commit/319f8b61d60806534bd7dd024d1bf1c2471b3af3)), closes [#32](https://github.com/sebastian-x86/t1mat0/issues/32)
+
+
+### Bug Fixes
+
+* **ui:** keep the primary button readable while hovered ([#39](https://github.com/sebastian-x86/t1mat0/issues/39)) ([2aa9694](https://github.com/sebastian-x86/t1mat0/commit/2aa969453a7084fbedf2b5e5d53fc6ee6eccccf9))
+* **ui:** keep the primary button readable while hovered ([#40](https://github.com/sebastian-x86/t1mat0/issues/40)) ([f116c93](https://github.com/sebastian-x86/t1mat0/commit/f116c93718099324153b29e800727a53937cb98b))
+* **ui:** line up the language and theme pickers ([#43](https://github.com/sebastian-x86/t1mat0/issues/43)) ([044a423](https://github.com/sebastian-x86/t1mat0/commit/044a423fdc03c9f7751475b5b02edd43d7add2e9))
+
+
+### Refactoring
+
+* **frontend:** split App.tsx and App.css by component ([#31](https://github.com/sebastian-x86/t1mat0/issues/31)) ([3d86ac8](https://github.com/sebastian-x86/t1mat0/commit/3d86ac82d09a76196120e0bff49b24caf63bafd4)), closes [#3](https://github.com/sebastian-x86/t1mat0/issues/3)
+* move go code into internal packages ([#30](https://github.com/sebastian-x86/t1mat0/issues/30)) ([471bdcb](https://github.com/sebastian-x86/t1mat0/commit/471bdcb0c807bfae31ee3c706134c3d4232ed27d)), closes [#2](https://github.com/sebastian-x86/t1mat0/issues/2)
+
+
+### Build
+
+* **frontend:** move to typescript 7 ([#27](https://github.com/sebastian-x86/t1mat0/issues/27)) ([7af2971](https://github.com/sebastian-x86/t1mat0/commit/7af29717e2d9c543bb77877324db8b6e3b651708)), closes [#26](https://github.com/sebastian-x86/t1mat0/issues/26)
+* **frontend:** replace eslint with oxlint and move to typescript 7 ([#34](https://github.com/sebastian-x86/t1mat0/issues/34)) ([ebdbdcb](https://github.com/sebastian-x86/t1mat0/commit/ebdbdcba701b1d4f77f663d78da9fc5335a5e4a2)), closes [#26](https://github.com/sebastian-x86/t1mat0/issues/26)
+* **release:** attach SHA256SUMS to every release ([#35](https://github.com/sebastian-x86/t1mat0/issues/35)) ([a192cea](https://github.com/sebastian-x86/t1mat0/commit/a192cea0712337605ad8bfc0fa6bd9870e33b183)), closes [#6](https://github.com/sebastian-x86/t1mat0/issues/6)
+
 ## 0.1.0 (2026-07-30)
 
 
