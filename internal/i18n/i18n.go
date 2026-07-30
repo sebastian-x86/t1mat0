@@ -60,6 +60,11 @@ var translations = map[string]map[string]string{
 	"notify.next":           {LangEnglish: "Next up", LangGerman: "Als Nächstes"},
 	"notify.harvested":      {LangEnglish: "Tomato harvested", LangGerman: "Tomate geerntet"},
 	"notify.harvestedCount": {LangEnglish: "tomatoes", LangGerman: "Tomaten"},
+	"notify.streak":         {LangEnglish: "Streak", LangGerman: "Serie"},
+	"notify.startBreak":     {LangEnglish: "Start the break", LangGerman: "Pause starten"},
+	"notify.skipBreak":      {LangEnglish: "Skip the break", LangGerman: "Pause überspringen"},
+	"notify.backToWork":     {LangEnglish: "Back to work", LangGerman: "Weiterarbeiten"},
+	"notify.showWindow":     {LangEnglish: "Show the window", LangGerman: "Fenster zeigen"},
 }
 
 // T looks up a translated string, falling back to English.
