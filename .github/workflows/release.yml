@@ -5,6 +5,9 @@ name: Release
 on:
   push:
     branches: [main]
+  # Zum Nachziehen, wenn ein Lauf ins Leere lief oder die Historie sich
+  # verschoben hat.
+  workflow_dispatch:
 
 # Anders als bei den Tests darf ein Release-Lauf nie abgebrochen werden: er
 # taggt, erzeugt das Release und lädt die Binaries hoch.
