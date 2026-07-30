@@ -57,6 +57,24 @@ func TestSaveAndLoadSettingsRoundTrip(t *testing.T) {
 	}
 }
 
+// A settings file written before these flags existed must not read as false,
+// which is what a plain unmarshal into a zero value would produce.
+func TestLoadSettingsKeepsDefaultsForMissingFlags(t *testing.T) {
+	dir := isolateConfig(t)
+	writeSettingsFile(t, dir, `{"workSeconds":60}`)
+
+	settings := LoadSettings()
+	if !settings.CloseToTray {
+		t.Fatal("expected closeToTray to stay on for an old settings file")
+	}
+	if settings.Theme != timer.ThemeAuto {
+		t.Fatalf("expected the auto theme, got %q", settings.Theme)
+	}
+	if !settings.SoundEnabled {
+		t.Fatal("expected soundEnabled to stay on")
+	}
+}
+
 func TestLoadSettingsIgnoresBrokenFile(t *testing.T) {
 	dir := isolateConfig(t)
 	writeSettingsFile(t, dir, "{not json")

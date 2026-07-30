@@ -65,6 +65,10 @@ type Settings struct {
 	Language string `json:"language"`
 	// Theme is "auto", "light" or "dark".
 	Theme string `json:"theme"`
+	// CloseToTray keeps the app running in the notification area when the
+	// window is closed. Without a tray icon it is ignored, because nothing
+	// would be left to bring the window back.
+	CloseToTray bool `json:"closeToTray"`
 	// SingleKeyShortcuts enables the letter shortcuts (space, n, r, ...).
 	// WCAG 2.1.4 requires them to be switchable off, because speech input
 	// and screen readers trigger bare character keys unintentionally.
@@ -125,6 +129,7 @@ func DefaultSettings() Settings {
 		AutoStartNext:      true,
 		Language:           i18n.LangAuto,
 		Theme:              ThemeAuto,
+		CloseToTray:        true,
 		SingleKeyShortcuts: true,
 	}
 }
@@ -442,6 +447,14 @@ func (t *Timer) SetTheme(theme string) State {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.settings.Theme = NormalizeTheme(theme)
+	return t.snapshotLocked()
+}
+
+// SetCloseToTray stores whether closing the window only hides it.
+func (t *Timer) SetCloseToTray(enabled bool) State {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.settings.CloseToTray = enabled
 	return t.snapshotLocked()
 }
 

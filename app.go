@@ -78,15 +78,16 @@ func (a *App) shutdown(ctx context.Context) {
 	_ = store.SaveSettings(a.timer.Snapshot().Settings)
 }
 
-// beforeClose hides the window into the tray instead of quitting the app.
-// A real quit (tray menu) sets the quitting flag first, because Wails triggers
-// the close handler on Windows even when Quit was requested explicitly.
+// beforeClose hides the window into the tray instead of quitting the app,
+// unless the user turned that off. A real quit (tray menu) sets the quitting
+// flag first, because Wails triggers the close handler on Windows even when
+// Quit was requested explicitly.
 func (a *App) beforeClose(ctx context.Context) bool {
 	a.mu.Lock()
 	quitting := a.quitting
 	a.mu.Unlock()
 
-	if quitting || !tray.Available() {
+	if quitting || !tray.Available() || !a.timer.Snapshot().Settings.CloseToTray {
 		return false
 	}
 	a.HideWindow()
@@ -254,6 +255,14 @@ func (a *App) SetLanguage(language string) timer.State {
 // SetTheme switches the colour scheme.
 func (a *App) SetTheme(theme string) timer.State {
 	state := a.timer.SetTheme(theme)
+	_ = store.SaveSettings(state.Settings)
+	a.publish(state)
+	return state
+}
+
+// SetCloseToTray toggles whether the close button hides the window.
+func (a *App) SetCloseToTray(enabled bool) timer.State {
+	state := a.timer.SetCloseToTray(enabled)
 	_ = store.SaveSettings(state.Settings)
 	a.publish(state)
 	return state

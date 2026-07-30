@@ -157,6 +157,20 @@ func TestThemeFallsBackToAutoOnLoad(t *testing.T) {
 	}
 }
 
+func TestSetCloseToTrayStoresThePreference(t *testing.T) {
+	timer := NewTimer(testSettings())
+
+	if !DefaultSettings().CloseToTray {
+		t.Fatal("closing into the tray should be the default")
+	}
+	if state := timer.SetCloseToTray(false); state.Settings.CloseToTray {
+		t.Fatal("expected closing to quit the app")
+	}
+	if state := timer.SetCloseToTray(true); !state.Settings.CloseToTray {
+		t.Fatal("expected closing to hide the window")
+	}
+}
+
 func TestSetLanguageTranslatesThePhaseLabel(t *testing.T) {
 	timer := NewTimer(testSettings())
 

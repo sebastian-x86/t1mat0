@@ -16,6 +16,8 @@ export function Reset():Promise<timer.State>;
 
 export function SetAlwaysOnTop(arg1:boolean):Promise<timer.State>;
 
+export function SetCloseToTray(arg1:boolean):Promise<timer.State>;
+
 export function SetCurrentDuration(arg1:number):Promise<timer.State>;
 
 export function SetLanguage(arg1:string):Promise<timer.State>;

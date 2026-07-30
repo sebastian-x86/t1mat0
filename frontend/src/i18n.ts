@@ -67,6 +67,9 @@ const strings = {
         themeAuto: "Auto (system)",
         themeLight: "Light",
         themeDark: "Dark",
+        closeToTray: "Close to notification area",
+        closeToTrayTitle:
+            "Closing the window keeps the timer running in the notification area instead of quitting",
 
         shortcuts: "Keyboard shortcuts",
         shortcutsTitle: "Keyboard shortcuts (F1)",
@@ -153,6 +156,9 @@ const strings = {
         themeAuto: "Automatisch (System)",
         themeLight: "Hell",
         themeDark: "Dunkel",
+        closeToTray: "Schließen in den Infobereich",
+        closeToTrayTitle:
+            "Beim Schließen läuft der Timer im Infobereich weiter, statt sich zu beenden",
 
         shortcuts: "Tastaturkürzel",
         shortcutsTitle: "Tastaturkürzel (F1)",

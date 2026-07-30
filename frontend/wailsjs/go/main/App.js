@@ -30,6 +30,10 @@ export function SetAlwaysOnTop(arg1) {
   return window['go']['main']['App']['SetAlwaysOnTop'](arg1);
 }
 
+export function SetCloseToTray(arg1) {
+  return window['go']['main']['App']['SetCloseToTray'](arg1);
+}
+
 export function SetCurrentDuration(arg1) {
   return window['go']['main']['App']['SetCurrentDuration'](arg1);
 }
