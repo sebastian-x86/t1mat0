@@ -42,7 +42,7 @@ jobs:
             build-mode: none
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # main.go bindet frontend/dist per go:embed ein. Der Ordner wird gebaut
       # und nicht eingecheckt, ohne Platzhalter scheitert schon das Kompilieren.
