@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.4.0](https://github.com/sebastian-x86/t1mat0/compare/t1mat0-v0.3.0...t1mat0-v0.4.0) (2026-07-30)
+
+
+### Features
+
+* **report:** add opt-in history and daily report ([#53](https://github.com/sebastian-x86/t1mat0/issues/53)) ([5b63ddc](https://github.com/sebastian-x86/t1mat0/commit/5b63ddc5e769015fc51005dc22df7695e53cd673))
+
+
+### Documentation
+
+* create FUNDING.yml ([#55](https://github.com/sebastian-x86/t1mat0/issues/55)) ([2ab1bca](https://github.com/sebastian-x86/t1mat0/commit/2ab1bca7ebbe0f05b388a0acda8f75a8695581ae))
+
 ## [0.3.0](https://github.com/sebastian-x86/t1mat0/compare/t1mat0-v0.2.0...t1mat0-v0.3.0) (2026-07-30)
 
 
