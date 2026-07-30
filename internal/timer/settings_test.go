@@ -126,6 +126,37 @@ func TestSetLanguageNormalizesUnknownValues(t *testing.T) {
 	}
 }
 
+func TestSetThemeNormalizesUnknownValues(t *testing.T) {
+	timer := NewTimer(testSettings())
+
+	if state := timer.SetTheme(ThemeLight); state.Settings.Theme != ThemeLight {
+		t.Fatalf("expected the light theme, got %q", state.Settings.Theme)
+	}
+	if state := timer.SetTheme("neon"); state.Settings.Theme != ThemeAuto {
+		t.Fatalf("expected auto for an unknown theme, got %q", state.Settings.Theme)
+	}
+}
+
+func TestThemeFallsBackToAutoOnLoad(t *testing.T) {
+	settings := testSettings()
+	settings.Theme = "neon"
+
+	if got := NewTimer(settings).Snapshot().Settings.Theme; got != ThemeAuto {
+		t.Fatalf("expected a stored garbage theme to become auto, got %q", got)
+	}
+
+	timer := NewTimer(testSettings())
+	next := testSettings()
+	next.Theme = ""
+	state, err := timer.UpdateSettings(next)
+	if err != nil {
+		t.Fatalf("UpdateSettings: %v", err)
+	}
+	if state.Settings.Theme != ThemeAuto {
+		t.Fatalf("expected an empty theme to become auto, got %q", state.Settings.Theme)
+	}
+}
+
 func TestSetLanguageTranslatesThePhaseLabel(t *testing.T) {
 	timer := NewTimer(testSettings())
 

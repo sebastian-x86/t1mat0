@@ -2,9 +2,9 @@
 .shortcuts__meta {
     margin: 8px 0 0;
     padding-top: 8px;
-    border-top: 1px solid rgba(148, 163, 184, 0.15);
+    border-top: 1px solid var(--divider);
     font-size: 0.7rem;
-    color: #7d8ea6;
+    color: var(--fg-faint);
     text-align: center;
 }
 
@@ -16,10 +16,10 @@
     bottom: calc(100% + 8px);
     z-index: 5;
     padding: 10px 12px;
-    border: 1px solid rgba(148, 163, 184, 0.25);
+    border: 1px solid var(--popover-border);
     border-radius: 10px;
-    background: rgba(15, 23, 42, 0.94);
-    box-shadow: 0 12px 30px rgba(2, 6, 23, 0.55);
+    background: var(--popover);
+    box-shadow: var(--popover-shadow);
     backdrop-filter: blur(4px);
 }
 
@@ -29,7 +29,7 @@
     gap: 4px 10px;
     margin: 0;
     font-size: 0.72rem;
-    color: #cbd5e1;
+    color: var(--fg-muted);
 }
 
 .shortcuts__list dt {
@@ -44,11 +44,11 @@
     display: inline-block;
     min-width: 18px;
     padding: 1px 5px;
-    border: 1px solid rgba(148, 163, 184, 0.35);
+    border: 1px solid var(--kbd-border);
     border-bottom-width: 2px;
     border-radius: 5px;
-    background: rgba(30, 41, 59, 0.9);
-    color: #e2e8f0;
+    background: var(--kbd-bg);
+    color: var(--fg-soft);
     font: inherit;
     font-size: 0.68rem;
     text-align: center;
@@ -57,11 +57,11 @@
 .shortcuts__list--single {
     margin-top: 6px;
     padding-top: 6px;
-    border-top: 1px solid rgba(148, 163, 184, 0.18);
+    border-top: 1px solid var(--divider);
 }
 
 .shortcuts__hint {
     margin: 6px 0 0;
-    color: #94a3b8;
+    color: var(--fg-label);
     font-size: 0.68rem;
 }

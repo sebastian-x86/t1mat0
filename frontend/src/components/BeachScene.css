@@ -46,7 +46,7 @@
 
 .beach__bird {
     fill: none;
-    stroke: #cbd5e1;
+    stroke: var(--scene-line);
     stroke-width: 1.6;
     stroke-linecap: round;
     opacity: 0.45;

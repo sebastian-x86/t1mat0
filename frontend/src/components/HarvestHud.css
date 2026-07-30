@@ -32,26 +32,26 @@
 }
 
 .harvest__leaf {
-    fill: #4ade80;
+    fill: var(--leaf);
 }
 
 .harvest__shine {
-    fill: rgba(255, 255, 255, 0.45);
+    fill: var(--shine);
 }
 
 .harvest__count {
     font-size: 0.95rem;
     line-height: 1;
     font-weight: 700;
-    color: #e2e8f0;
+    color: var(--fg-soft);
     letter-spacing: 0.02em;
 }
 
 .harvest__streak {
     padding: 1px 7px;
     border-radius: 999px;
-    background: rgba(248, 113, 113, 0.16);
-    color: #fca5a5;
+    background: var(--danger-veil);
+    color: var(--danger-text);
     font-size: 0.64rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -86,7 +86,7 @@
     0%,
     100% {
         transform: scale(1);
-        color: #e2e8f0;
+        color: var(--fg-soft);
     }
     40% {
         transform: scale(1.25);

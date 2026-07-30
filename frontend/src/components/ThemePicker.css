@@ -1,13 +1,13 @@
-.langswitch {
+.themeswitch {
     display: flex;
     gap: 4px;
 }
 
-.langswitch__option {
+.themeswitch__option {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
+    width: 28px;
     height: 24px;
     padding: 0;
     border: 1px solid var(--control-border);
@@ -21,25 +21,19 @@
         color 0.15s ease;
 }
 
-.langswitch__option:hover {
+.themeswitch__option:hover {
     background: var(--control-hover);
     color: var(--fg-soft);
 }
 
-.langswitch__option--on {
+.themeswitch__option--on {
     border-color: var(--accent);
     background: var(--accent-veil);
     color: var(--fg-soft);
 }
 
-.langswitch__icon {
-    width: 16px;
-    height: 16px;
-    fill: currentColor;
-}
-
-.langswitch__flag {
-    width: 20px;
-    height: 13px;
-    border-radius: 2px;
+.themeswitch__icon {
+    width: 15px;
+    height: 15px;
+    fill: none;
 }

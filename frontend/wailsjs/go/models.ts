@@ -25,6 +25,7 @@ export namespace timer {
 	    soundEnabled: boolean;
 	    autoStartNext: boolean;
 	    language: string;
+	    theme: string;
 	    singleKeyShortcuts: boolean;
 	
 	    static createFrom(source: any = {}) {
@@ -41,6 +42,7 @@ export namespace timer {
 	        this.soundEnabled = source["soundEnabled"];
 	        this.autoStartNext = source["autoStartNext"];
 	        this.language = source["language"];
+	        this.theme = source["theme"];
 	        this.singleKeyShortcuts = source["singleKeyShortcuts"];
 	    }
 	}

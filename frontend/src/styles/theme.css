@@ -1,0 +1,127 @@
+/* Colour tokens -------------------------------------------------------- *
+ * Every colour the chrome uses lives here. Components only reference the
+ * semantic names, so a theme is a matter of swapping this one block.
+ *
+ * The app always writes a concrete data-theme ("dark" or "light") onto
+ * <html>; the "auto" preference is resolved in JavaScript against
+ * prefers-color-scheme. That keeps this file free of a duplicated media
+ * query copy of the light palette.
+ */
+
+:root,
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --accent-work: #ef4444;
+    --accent-short: #22c55e;
+    --accent-long: #3b82f6;
+    --accent: var(--accent-work);
+    --on-accent: #ffffff;
+
+    --bg: #111827;
+    --bg-window: rgb(27, 38, 54);
+
+    --fg: #f9fafb;
+    --fg-strong: #f8fafc;
+    --fg-soft: #e2e8f0;
+    --fg-muted: #cbd5e1;
+    --fg-label: #9fb0c7;
+    --fg-dim: #9ca3af;
+    --fg-faint: #7d8ea6;
+
+    --surface: #1f2937;
+    --surface-hover: #374151;
+    --surface-border: #374151;
+
+    --panel: #1a2333;
+    --panel-border: rgba(148, 163, 184, 0.18);
+    --panel-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+
+    --popover: rgba(15, 23, 42, 0.94);
+    --popover-border: rgba(148, 163, 184, 0.25);
+    --popover-shadow: 0 12px 30px rgba(2, 6, 23, 0.55);
+
+    --control: rgba(148, 163, 184, 0.1);
+    --control-hover: rgba(148, 163, 184, 0.16);
+    --control-active: rgba(148, 163, 184, 0.18);
+    --control-border: rgba(148, 163, 184, 0.2);
+
+    --divider: rgba(148, 163, 184, 0.16);
+    --hover-veil: rgba(255, 255, 255, 0.06);
+
+    --kbd-bg: rgba(30, 41, 59, 0.9);
+    --kbd-border: rgba(148, 163, 184, 0.35);
+
+    --danger: #f87171;
+    --danger-text: #fca5a5;
+    --danger-veil: rgba(248, 113, 113, 0.16);
+
+    --leaf: #4ade80;
+    --shine: rgba(255, 255, 255, 0.45);
+
+    --track: #1f2937;
+    --focus-ring: #f8fafc;
+    --accent-veil: rgba(239, 68, 68, 0.14);
+    --scene-line: #cbd5e1;
+    --scene-highlight: #ffffff;
+}
+
+:root[data-theme="light"] {
+    color-scheme: light;
+
+    /* Darker accents: the saturated dark-mode reds and greens would carry
+       white button text at barely 2:1 on a light surface. */
+    --accent-work: #dc2626;
+    --accent-short: #15803d;
+    --accent-long: #1d4ed8;
+    --accent: var(--accent-work);
+    --on-accent: #ffffff;
+
+    --bg: #f4f5f8;
+    --bg-window: rgb(238, 241, 246);
+
+    --fg: #0f172a;
+    --fg-strong: #020617;
+    --fg-soft: #1e293b;
+    --fg-muted: #334155;
+    --fg-label: #475569;
+    --fg-dim: #52606d;
+    --fg-faint: #5b6a7d;
+
+    --surface: #ffffff;
+    --surface-hover: #e5e9f0;
+    --surface-border: #c8d0dc;
+
+    --panel: #ffffff;
+    --panel-border: rgba(15, 23, 42, 0.14);
+    --panel-shadow: 0 14px 30px rgba(15, 23, 42, 0.18);
+
+    --popover: rgba(255, 255, 255, 0.96);
+    --popover-border: rgba(15, 23, 42, 0.16);
+    --popover-shadow: 0 12px 30px rgba(15, 23, 42, 0.16);
+
+    --control: rgba(15, 23, 42, 0.05);
+    --control-hover: rgba(15, 23, 42, 0.09);
+    --control-active: rgba(15, 23, 42, 0.09);
+    --control-border: rgba(15, 23, 42, 0.18);
+
+    --divider: rgba(15, 23, 42, 0.12);
+    --hover-veil: rgba(15, 23, 42, 0.06);
+
+    --kbd-bg: #eef1f6;
+    --kbd-border: rgba(15, 23, 42, 0.22);
+
+    --danger: #dc2626;
+    --danger-text: #b91c1c;
+    --danger-veil: rgba(220, 38, 38, 0.12);
+
+    --leaf: #16a34a;
+    --shine: rgba(255, 255, 255, 0.6);
+
+    --track: #d7dde7;
+    --focus-ring: #0f172a;
+    --accent-veil: rgba(220, 38, 38, 0.12);
+    /* On a light window the highlights turn into soft shading instead. */
+    --scene-line: #475569;
+    --scene-highlight: #0f172a;
+}
