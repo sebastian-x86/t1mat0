@@ -22,13 +22,16 @@ const strings = {
         resetTitle: (hint: string) => `Reset this phase${hint}`,
         skipTitle: (hint: string) => `Skip to the next phase${hint}`,
 
-        clockTitle: "Type the minutes, then the seconds — arrows or scroll adjust, Enter sets, Esc cancels",
+        clockTitle:
+            "Type the minutes, then the seconds — arrows or scroll adjust, Enter sets, Esc cancels",
         clockEditTitle: "Edit the duration of this phase (F2)",
-        clockAria: (remaining: string) => `${remaining} remaining — edit the duration of this phase`,
+        clockAria: (remaining: string) =>
+            `${remaining} remaining — edit the duration of this phase`,
         clockDurationAria: "Phase duration",
         clockHint: "type mm ss · ↑↓ or scroll · Enter to set, Esc to cancel",
         progressAria: (phase: string) => `${phase} progress`,
-        progressValue: (percent: number, remaining: string) => `${percent} percent, ${remaining} remaining`,
+        progressValue: (percent: number, remaining: string) =>
+            `${percent} percent, ${remaining} remaining`,
         liveStatus: (phase: string, status: string, remaining: string) =>
             `${phase}, ${status}, ${remaining} remaining`,
 
@@ -37,14 +40,17 @@ const strings = {
         work: "Work",
         shortBreak: "Short break",
         longBreak: "Long break",
-        workTitle: "Work phase: focus on one task until the timer runs out. Finishing it earns a tomato.",
+        workTitle:
+            "Work phase: focus on one task until the timer runs out. Finishing it earns a tomato.",
         shortBreakTitle: "Short break: step away for a moment. It follows every work phase.",
         longBreakTitle: "Long break: the longer rest after several work phases in a row.",
         longBreakEvery: "Long break every",
         longBreakEveryTitle: "Number of work phases before a long break — scroll to change",
-        durationTitle: (label: string) => `${label} duration — mm:ss, "45s" or plain minutes; scroll to change`,
+        durationTitle: (label: string) =>
+            `${label} duration — mm:ss, "45s" or plain minutes; scroll to change`,
         durationHint: 'mm:ss, "45s" or plain minutes (e.g. 0:30).',
-        invalidDuration: (label: string) => `Invalid duration for "${label}" — use mm:ss, "45s" or minutes.`,
+        invalidDuration: (label: string) =>
+            `Invalid duration for "${label}" — use mm:ss, "45s" or minutes.`,
         save: "Save",
         saveTitle: "Save settings",
         alwaysOnTop: "Always on Top",
@@ -95,13 +101,16 @@ const strings = {
         resetTitle: (hint: string) => `Diese Phase zurücksetzen${hint}`,
         skipTitle: (hint: string) => `Zur nächsten Phase springen${hint}`,
 
-        clockTitle: "Erst die Minuten tippen, dann die Sekunden — Pfeiltasten oder Mausrad ändern, Enter übernimmt, Esc bricht ab",
+        clockTitle:
+            "Erst die Minuten tippen, dann die Sekunden — Pfeiltasten oder Mausrad ändern, Enter übernimmt, Esc bricht ab",
         clockEditTitle: "Dauer dieser Phase bearbeiten (F2)",
-        clockAria: (remaining: string) => `${remaining} verbleibend — Dauer dieser Phase bearbeiten`,
+        clockAria: (remaining: string) =>
+            `${remaining} verbleibend — Dauer dieser Phase bearbeiten`,
         clockDurationAria: "Dauer der Phase",
         clockHint: "mm ss tippen · ↑↓ oder Mausrad · Enter übernimmt, Esc bricht ab",
         progressAria: (phase: string) => `Fortschritt: ${phase}`,
-        progressValue: (percent: number, remaining: string) => `${percent} Prozent, ${remaining} verbleibend`,
+        progressValue: (percent: number, remaining: string) =>
+            `${percent} Prozent, ${remaining} verbleibend`,
         liveStatus: (phase: string, status: string, remaining: string) =>
             `${phase}, ${status}, ${remaining} verbleibend`,
 
@@ -110,14 +119,19 @@ const strings = {
         work: "Arbeit",
         shortBreak: "Kurze Pause",
         longBreak: "Lange Pause",
-        workTitle: "Arbeitsphase: konzentriert an einer Aufgabe arbeiten, bis die Zeit abl\u00e4uft. Daf\u00fcr gibt es eine Tomate.",
+        workTitle:
+            "Arbeitsphase: konzentriert an einer Aufgabe arbeiten, bis die Zeit abl\u00e4uft. Daf\u00fcr gibt es eine Tomate.",
         shortBreakTitle: "Kurze Pause: kurz durchatmen. Sie folgt auf jede Arbeitsphase.",
-        longBreakTitle: "Lange Pause: die l\u00e4ngere Erholung nach mehreren Arbeitsphasen am St\u00fcck.",
+        longBreakTitle:
+            "Lange Pause: die l\u00e4ngere Erholung nach mehreren Arbeitsphasen am St\u00fcck.",
         longBreakEvery: "Lange Pause alle",
-        longBreakEveryTitle: "Anzahl der Arbeitsphasen bis zur langen Pause — Mausrad ändert den Wert",
-        durationTitle: (label: string) => `Dauer \u201e${label}\u201c — mm:ss, \u201e45s\u201c oder ganze Minuten; Mausrad ändert den Wert`,
+        longBreakEveryTitle:
+            "Anzahl der Arbeitsphasen bis zur langen Pause — Mausrad ändert den Wert",
+        durationTitle: (label: string) =>
+            `Dauer \u201e${label}\u201c — mm:ss, \u201e45s\u201c oder ganze Minuten; Mausrad ändert den Wert`,
         durationHint: "mm:ss, \u201e45s\u201c oder ganze Minuten (z. B. 0:30).",
-        invalidDuration: (label: string) => `Ungültige Dauer für \u201e${label}\u201c — nutze mm:ss, \u201e45s\u201c oder Minuten.`,
+        invalidDuration: (label: string) =>
+            `Ungültige Dauer für \u201e${label}\u201c — nutze mm:ss, \u201e45s\u201c oder Minuten.`,
         save: "Speichern",
         saveTitle: "Einstellungen speichern",
         alwaysOnTop: "Immer im Vordergrund",

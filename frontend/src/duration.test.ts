@@ -91,7 +91,10 @@ describe("typeClockDigit", () => {
     });
 
     it("starts a fresh number once a segment is full", () => {
-        const full = typeClockDigit(typeClockDigit({draft: "00:00", segment: 1, typed: ""}, "1"), "2");
+        const full = typeClockDigit(
+            typeClockDigit({draft: "00:00", segment: 1, typed: ""}, "1"),
+            "2",
+        );
         expect(full.draft).toBe("00:12");
         expect(full.typed).toBe("");
 
@@ -100,7 +103,10 @@ describe("typeClockDigit", () => {
     });
 
     it("does not let the minutes leave the allowed range", () => {
-        const typed = typeClockDigit(typeClockDigit({draft: "00:00", segment: 0, typed: ""}, "9"), "9");
+        const typed = typeClockDigit(
+            typeClockDigit({draft: "00:00", segment: 0, typed: ""}, "9"),
+            "9",
+        );
         expect(parseDuration(typed.draft)!).toBeLessThanOrEqual(MAX_PHASE_SECONDS);
     });
 });

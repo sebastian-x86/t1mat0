@@ -115,7 +115,12 @@ mit Vitest geprüft werden kann:
 cd frontend
 npm test                           # einmalig
 npm run test:watch                 # im Watch-Modus
+npm run lint                       # ESLint mit den React-Hooks-Regeln
+npm run format                     # Prettier
 ```
+
+Auf der Go-Seite prüft `golangci-lint run --build-tags webkit2_41 ./...`
+dasselbe, was die CI im Job *Go lint* ausführt.
 
 Nicht getestet sind bewusst die Wails-Bindings selbst (Fenster, Tray,
 Benachrichtigungen) und die SVG-Szenen — beides braucht eine laufende Runtime

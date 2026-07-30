@@ -126,9 +126,9 @@ func writeICO(path string, sizes []int) {
 	}
 
 	var buf bytes.Buffer
-	binary.Write(&buf, binary.LittleEndian, uint16(0))
-	binary.Write(&buf, binary.LittleEndian, uint16(1))
-	binary.Write(&buf, binary.LittleEndian, uint16(len(sizes)))
+	_ = binary.Write(&buf, binary.LittleEndian, uint16(0))
+	_ = binary.Write(&buf, binary.LittleEndian, uint16(1))
+	_ = binary.Write(&buf, binary.LittleEndian, uint16(len(sizes)))
 
 	offset := 6 + 16*len(sizes)
 	for i, s := range sizes {
@@ -140,10 +140,10 @@ func writeICO(path string, sizes []int) {
 		buf.WriteByte(dim)
 		buf.WriteByte(0)
 		buf.WriteByte(0)
-		binary.Write(&buf, binary.LittleEndian, uint16(1))
-		binary.Write(&buf, binary.LittleEndian, uint16(32))
-		binary.Write(&buf, binary.LittleEndian, uint32(len(blobs[i])))
-		binary.Write(&buf, binary.LittleEndian, uint32(offset))
+		_ = binary.Write(&buf, binary.LittleEndian, uint16(1))
+		_ = binary.Write(&buf, binary.LittleEndian, uint16(32))
+		_ = binary.Write(&buf, binary.LittleEndian, uint32(len(blobs[i])))
+		_ = binary.Write(&buf, binary.LittleEndian, uint32(offset))
 		offset += len(blobs[i])
 	}
 	for _, b := range blobs {

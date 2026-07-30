@@ -60,25 +60,28 @@ function BeachScene({progress, running, long, paused = false}: BeachSceneProps) 
     const [flopStage, setFlopStage] = useState<FlopStage>("hidden");
     const [landing, setLanding] = useState(randomLandingSpot);
 
+    // A paused timer puts the fish back in the water without resetting the
+    // stored stage, so the sequence continues where it left off.
+    const stage: FlopStage = running ? flopStage : "hidden";
+
     // The small fish runs its own little sequence: it waits under water for a
     // random while, beaches itself somewhere on the sand, flops around and
     // then jumps back in.
     useEffect(() => {
         if (!running) {
-            setFlopStage("hidden");
             return;
         }
 
-        const delay = flopStage === "hidden" ? 4000 + Math.random() * 7000 : FLOP_TIMING[flopStage];
+        const delay = stage === "hidden" ? 4000 + Math.random() * 7000 : FLOP_TIMING[stage];
         const id = window.setTimeout(() => {
-            if (flopStage === "hidden") {
+            if (stage === "hidden") {
                 setLanding(randomLandingSpot());
             }
-            setFlopStage(NEXT_STAGE[flopStage]);
+            setFlopStage(NEXT_STAGE[stage]);
         }, delay);
 
         return () => window.clearTimeout(id);
-    }, [flopStage, running]);
+    }, [stage, running]);
 
     const clamped = Math.min(1, Math.max(0, progress));
 
@@ -102,28 +105,31 @@ function BeachScene({progress, running, long, paused = false}: BeachSceneProps) 
             >
                 <defs>
                     <radialGradient id="beach-sun" cx="40%" cy="35%" r="70%">
-                        <stop offset="0%" stopColor="#fffbeb"/>
-                        <stop offset="55%" stopColor="#fde047"/>
-                        <stop offset="100%" stopColor="#fb923c"/>
+                        <stop offset="0%" stopColor="#fffbeb" />
+                        <stop offset="55%" stopColor="#fde047" />
+                        <stop offset="100%" stopColor="#fb923c" />
                     </radialGradient>
                     <radialGradient id="beach-sand" cx="45%" cy="25%" r="80%">
-                        <stop offset="0%" stopColor="#f6dda9"/>
-                        <stop offset="100%" stopColor="#d8ad6b"/>
+                        <stop offset="0%" stopColor="#f6dda9" />
+                        <stop offset="100%" stopColor="#d8ad6b" />
                     </radialGradient>
                     <radialGradient id="beach-water" cx="45%" cy="25%" r="80%">
-                        <stop offset="0%" stopColor="#38bdf8"/>
-                        <stop offset="100%" stopColor="#0369a1"/>
+                        <stop offset="0%" stopColor="#38bdf8" />
+                        <stop offset="100%" stopColor="#0369a1" />
                     </radialGradient>
                     <clipPath id="beach-water-clip">
-                        <ellipse cx="100" cy="184" rx="62" ry="16"/>
+                        <ellipse cx="100" cy="184" rx="62" ry="16" />
                     </clipPath>
                     <clipPath id="beach-drink">
-                        <path d="M35 189 L75 189 L55 212 Z"/>
+                        <path d="M35 189 L75 189 L55 212 Z" />
                     </clipPath>
                 </defs>
 
                 <g className="beach__sky">
-                    <g className="beach__sun-group" style={{transform: `translate(${sunX}px, ${sunY}px)`}}>
+                    <g
+                        className="beach__sun-group"
+                        style={{transform: `translate(${sunX}px, ${sunY}px)`}}
+                    >
                         <g className="beach__rays">
                             {SUN_RAYS.map((angle) => (
                                 <line
@@ -136,25 +142,25 @@ function BeachScene({progress, running, long, paused = false}: BeachSceneProps) 
                                 />
                             ))}
                         </g>
-                        <circle className="beach__sun" r={sunRadius}/>
-                        <circle className="beach__sun-glow" r={sunRadius + 13}/>
+                        <circle className="beach__sun" r={sunRadius} />
+                        <circle className="beach__sun-glow" r={sunRadius + 13} />
                     </g>
 
                     <g className="beach__bird beach__bird--a">
-                        <path d="M0 0 q5 -5 10 0 q5 -5 10 0"/>
+                        <path d="M0 0 q5 -5 10 0 q5 -5 10 0" />
                     </g>
                     <g className="beach__bird beach__bird--b">
-                        <path d="M0 0 q3.5 -3.5 7 0 q3.5 -3.5 7 0"/>
+                        <path d="M0 0 q3.5 -3.5 7 0 q3.5 -3.5 7 0" />
                     </g>
                 </g>
 
                 <g className="beach__island">
-                    <ellipse className="beach__sand" cx="100" cy="200" rx="86" ry="34"/>
-                    <ellipse className="beach__sand-rim" cx="100" cy="200" rx="86" ry="34"/>
+                    <ellipse className="beach__sand" cx="100" cy="200" rx="86" ry="34" />
+                    <ellipse className="beach__sand-rim" cx="100" cy="200" rx="86" ry="34" />
                 </g>
 
                 <g className="beach__lagoon">
-                    <ellipse className="beach__water" cx="100" cy="184" rx="62" ry="16"/>
+                    <ellipse className="beach__water" cx="100" cy="184" rx="62" ry="16" />
                     <g clipPath="url(#beach-water-clip)">
                         <g className="beach__waves">
                             {WAVES.map((wave) => (
@@ -167,73 +173,87 @@ function BeachScene({progress, running, long, paused = false}: BeachSceneProps) 
                             ))}
                         </g>
                     </g>
-                    <ellipse className="beach__water-rim" cx="100" cy="184" rx="62" ry="16"/>
+                    <ellipse className="beach__water-rim" cx="100" cy="184" rx="62" ry="16" />
                 </g>
 
-                {paused && <SnoozeZs x={140} y={176}/>}
+                {paused && <SnoozeZs x={140} y={176} />}
 
                 <g className="beach__fish">
                     <g
                         className="beach__fish-jump"
                         style={{transformOrigin: `${BIG_FISH.x}px ${BIG_FISH.y}px`}}
                     >
-                        <g transform={`translate(${BIG_FISH.x} ${BIG_FISH.y}) scale(${BIG_FISH.scale})`}>
-                            <Fish/>
+                        <g
+                            transform={`translate(${BIG_FISH.x} ${BIG_FISH.y}) scale(${BIG_FISH.scale})`}
+                        >
+                            <Fish />
                         </g>
                     </g>
 
                     <g
-                        className={`beach__flopper beach__flopper--${flopStage}`}
+                        className={`beach__flopper beach__flopper--${stage}`}
                         style={{
                             transformOrigin: `${FLOP_START.x}px ${FLOP_START.y}px`,
                             ["--flop-x" as string]: `${landing.x - FLOP_START.x}px`,
                             ["--flop-y" as string]: `${landing.y - FLOP_START.y}px`,
                         }}
                     >
-                        <g transform={`translate(${FLOP_START.x} ${FLOP_START.y}) scale(-0.62 0.62)`}>
-                            <Fish/>
+                        <g
+                            transform={`translate(${FLOP_START.x} ${FLOP_START.y}) scale(-0.62 0.62)`}
+                        >
+                            <Fish />
                         </g>
                     </g>
                 </g>
 
                 <g className="beach__cocktail" transform="translate(-6 -14)">
-                    <ellipse className="beach__glass-shadow" cx="55" cy="236" rx="20" ry="4"/>
+                    <ellipse className="beach__glass-shadow" cx="55" cy="236" rx="20" ry="4" />
 
-                    <path className="beach__glass-body" d="M32 186 L78 186 L55 214 Z"/>
+                    <path className="beach__glass-body" d="M32 186 L78 186 L55 214 Z" />
 
                     <g clipPath="url(#beach-drink)">
-                        <g className="beach__drink" style={{transform: `translateY(${drinkOffset}px)`}}>
-                            <path d="M35 189 L75 189 L55 212 Z"/>
-                            <rect x="35" y={COCKTAIL_TOP} width="40" height="3"/>
+                        <g
+                            className="beach__drink"
+                            style={{transform: `translateY(${drinkOffset}px)`}}
+                        >
+                            <path d="M35 189 L75 189 L55 212 Z" />
+                            <rect x="35" y={COCKTAIL_TOP} width="40" height="3" />
                         </g>
                     </g>
 
-                    <path className="beach__glass-outline" d="M32 186 L78 186 L55 214 Z"/>
-                    <line className="beach__glass-outline" x1="55" y1="214" x2="55" y2="232"/>
-                    <line className="beach__glass-outline" x1="43" y1="233" x2="67" y2="233"/>
+                    <path className="beach__glass-outline" d="M32 186 L78 186 L55 214 Z" />
+                    <line className="beach__glass-outline" x1="55" y1="214" x2="55" y2="232" />
+                    <line className="beach__glass-outline" x1="43" y1="233" x2="67" y2="233" />
 
-                    <line className="beach__straw" x1="50" y1="205" x2="84" y2="172"/>
+                    <line className="beach__straw" x1="50" y1="205" x2="84" y2="172" />
 
                     <g className="beach__lemon" transform="translate(76 185)">
-                        <circle r="7"/>
-                        <path className="beach__lemon-peel" d="M-7 0 A7 7 0 0 1 7 0 Z"/>
+                        <circle r="7" />
+                        <path className="beach__lemon-peel" d="M-7 0 A7 7 0 0 1 7 0 Z" />
                     </g>
 
                     <g className="beach__umbrella" transform="translate(38 172)">
-                        <line className="beach__umbrella-stick" x1="0" y1="0" x2="6" y2="18"/>
-                        <path d="M-9 0 Q-4 -8 0 0 Q4 -8 9 0 Z"/>
+                        <line className="beach__umbrella-stick" x1="0" y1="0" x2="6" y2="18" />
+                        <path d="M-9 0 Q-4 -8 0 0 Q4 -8 9 0 Z" />
                     </g>
                 </g>
 
                 <g className="beach__starfish" transform="translate(146 212)">
                     {[0, 72, 144, 216, 288].map((angle) => (
-                        <ellipse key={angle} cx="0" cy="-6" rx="3" ry="6.5" transform={`rotate(${angle})`}/>
+                        <ellipse
+                            key={angle}
+                            cx="0"
+                            cy="-6"
+                            rx="3"
+                            ry="6.5"
+                            transform={`rotate(${angle})`}
+                        />
                     ))}
                 </g>
 
                 <g className="beach__shells">
-                    <ellipse cx="122" cy="224" rx="4.5" ry="3.2"/>
-                    <ellipse cx="163" cy="196" rx="3.4" ry="2.4"/>
+                    <ellipse cx="122" cy="224" rx="4.5" ry="3.2" />
+                    <ellipse cx="163" cy="196" rx="3.4" ry="2.4" />
                 </g>
             </svg>
         </div>
@@ -243,10 +263,10 @@ function BeachScene({progress, running, long, paused = false}: BeachSceneProps) 
 function Fish() {
     return (
         <>
-            <path className="beach__fish-body" d="M0 0 C7 -8 21 -8 28 0 C21 8 7 8 0 0 Z"/>
-            <path className="beach__fish-tail" d="M0 0 L-10 -7 L-10 7 Z"/>
-            <path className="beach__fish-fin" d="M13 -5 L18 -12 L21 -5 Z"/>
-            <circle className="beach__fish-eye" cx="21" cy="-2" r="1.8"/>
+            <path className="beach__fish-body" d="M0 0 C7 -8 21 -8 28 0 C21 8 7 8 0 0 Z" />
+            <path className="beach__fish-tail" d="M0 0 L-10 -7 L-10 7 Z" />
+            <path className="beach__fish-fin" d="M13 -5 L18 -12 L21 -5 Z" />
+            <circle className="beach__fish-eye" cx="21" cy="-2" r="1.8" />
         </>
     );
 }

@@ -11,9 +11,12 @@ type Props = {
 function TomatoIcon() {
     return (
         <svg className="harvest__icon" viewBox="0 2.6 24 24">
-            <path className="harvest__leaf" d="M12 3.4 9.6 5.1 6.9 4.3l.9 2.6-1.4 2.2 2.7.2 1.5 2 1.4-2 2.7-.2-1.4-2.2.9-2.6-2.7.8L12 3.4Z"/>
-            <circle className="harvest__body" cx="12" cy="15" r="6.6"/>
-            <ellipse className="harvest__shine" cx="9.6" cy="12.6" rx="1.6" ry="1.1"/>
+            <path
+                className="harvest__leaf"
+                d="M12 3.4 9.6 5.1 6.9 4.3l.9 2.6-1.4 2.2 2.7.2 1.5 2 1.4-2 2.7-.2-1.4-2.2.9-2.6-2.7.8L12 3.4Z"
+            />
+            <circle className="harvest__body" cx="12" cy="15" r="6.6" />
+            <ellipse className="harvest__shine" cx="9.6" cy="12.6" rx="1.6" ry="1.1" />
         </svg>
     );
 }
@@ -39,12 +42,11 @@ function HarvestHud({language, tomatoes, streak, bestStreak}: Props) {
             aria-label={t.harvestAria(tomatoes, streak, bestStreak)}
             role="img"
         >
-            <span
-                className="harvest__total"
-                title={t.harvestTitle(tomatoes)}
-            >
-                <TomatoIcon/>
-                <span className="harvest__count" aria-hidden="true">{tomatoes}</span>
+            <span className="harvest__total" title={t.harvestTitle(tomatoes)}>
+                <TomatoIcon />
+                <span className="harvest__count" aria-hidden="true">
+                    {tomatoes}
+                </span>
             </span>
             {streak >= 2 && (
                 <span
