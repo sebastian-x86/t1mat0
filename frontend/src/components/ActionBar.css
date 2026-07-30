@@ -37,8 +37,14 @@
     color: var(--on-accent);
 }
 
+/* .btn:hover has the same specificity and would otherwise paint the surface
+   colour over the accent, leaving white text on a near white background in
+   the light theme. Hovering inverts the button instead: accent surface and
+   white text become surface and accent text. */
 .btn--primary:hover {
-    filter: brightness(1.1);
+    background: var(--surface);
+    border-color: var(--accent);
+    color: var(--accent);
 }
 
 .btn--icon {
