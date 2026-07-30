@@ -11,12 +11,18 @@ Wails CLI.
 
 ```bash
 go test ./...                 # Go-Logik
-cd frontend && npm test       # Zeitlogik der Oberfläche
-cd frontend && npx tsc --noEmit
-gofmt -l .                    # muss leer sein
+golangci-lint run --build-tags webkit2_41 ./...
+
+cd frontend
+npm test                      # Zeitlogik der Oberfläche
+npx tsc --noEmit
+npm run lint                  # ESLint inkl. React-Hooks-Regeln
+npm run format:check          # Prettier; `npm run format` korrigiert
 ```
 
 Die CI prüft dasselbe und lässt die Abdeckung nicht unter 70 % fallen.
+Einrückung und Zeilenenden regelt die `.editorconfig`: vier Leerzeichen,
+Tabs in Go, LF überall.
 
 ## Commit-Nachrichten: Conventional Commits
 

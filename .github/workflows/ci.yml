@@ -110,6 +110,57 @@ jobs:
         working-directory: frontend
         run: npm run build
 
+  lint-go:
+    name: Go lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install GUI headers
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      # Ohne die eingebetteten Assets kommt der Linter nicht am go:embed vorbei.
+      - name: Stub the embedded assets
+        run: |
+          mkdir -p frontend/dist
+          echo '<!doctype html><title>lint build</title>' > frontend/dist/index.html
+
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: latest
+          args: --build-tags webkit2_41
+
+  lint-frontend:
+    name: Frontend lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: ESLint
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Prettier
+        working-directory: frontend
+        run: npm run format:check
+
   badge:
     name: Publish coverage badge
     needs: [go, frontend]

@@ -17,7 +17,11 @@
     box-sizing: border-box;
     color: #f9fafb;
     background: #111827;
-    font-family: "Nunito", system-ui, -apple-system, sans-serif;
+    font-family:
+        "Nunito",
+        system-ui,
+        -apple-system,
+        sans-serif;
     text-align: left;
 }
 
@@ -72,7 +76,9 @@
     background: none;
     color: #94a3b8;
     cursor: pointer;
-    transition: transform 0.3s ease, color 0.15s ease;
+    transition:
+        transform 0.3s ease,
+        color 0.15s ease;
 }
 
 .gear__button:hover {
@@ -168,7 +174,9 @@
     font-variant-numeric: tabular-nums;
     text-align: right;
     outline: none;
-    transition: border-color 0.15s ease, background 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease;
 }
 
 .field input[type="number"] {
@@ -201,7 +209,10 @@
     background: rgba(148, 163, 184, 0.1);
     color: #9fb0c7;
     cursor: pointer;
-    transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        color 0.15s ease;
 }
 
 .langswitch__option:hover {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"os"
@@ -226,7 +227,10 @@ func TestAppShutdownPersistsSettings(t *testing.T) {
 		t.Fatalf("remove settings: %v", err)
 	}
 
-	app.shutdown(nil)
+	// Absichtlich ohne Kontext: shutdown muss die Einstellungen auch dann
+	// schreiben, wenn die Wails-Runtime nie gestartet wurde.
+	var withoutRuntime context.Context
+	app.shutdown(withoutRuntime)
 
 	if got := readSettingsFile(t).WorkSeconds; got != 120 {
 		t.Fatalf("shutdown should write the current settings, got %d", got)

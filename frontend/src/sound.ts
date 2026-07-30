@@ -9,7 +9,9 @@ function getContext(): AudioContext | null {
         return null;
     }
     if (!audioContext) {
-        const Ctor = window.AudioContext || (window as any).webkitAudioContext;
+        const Ctor =
+            window.AudioContext ??
+            (window as {webkitAudioContext?: typeof AudioContext}).webkitAudioContext;
         if (!Ctor) {
             return null;
         }
