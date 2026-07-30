@@ -4,6 +4,7 @@ import {
     SetLanguage,
     SetSingleKeyShortcuts,
     SetSoundEnabled,
+    SetTheme,
     UpdateSettings,
 } from "../../wailsjs/go/main/App";
 import {timer} from "../../wailsjs/go/models";
@@ -12,6 +13,7 @@ import {useWheel} from "../hooks/useWheel";
 import {wheelStep} from "../lib/clockPointer";
 import type {Strings} from "../i18n";
 import LanguagePicker from "./LanguagePicker";
+import ThemePicker from "./ThemePicker";
 import "./SettingsPanel.css";
 
 type SettingsForm = {
@@ -245,6 +247,17 @@ export default function SettingsPanel({t, settings, open, onOpenChange, onApplie
                             value={settings.language}
                             autoLabel={t.languageAuto}
                             onChange={(value) => SetLanguage(value).then(apply)}
+                        />
+                    </div>
+
+                    <div className="field" title={t.themeTitle}>
+                        <span>{t.theme}</span>
+                        <ThemePicker
+                            value={settings.theme}
+                            autoLabel={t.themeAuto}
+                            lightLabel={t.themeLight}
+                            darkLabel={t.themeDark}
+                            onChange={(value) => SetTheme(value).then(apply)}
                         />
                     </div>
 

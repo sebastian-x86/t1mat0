@@ -251,6 +251,14 @@ func (a *App) SetLanguage(language string) timer.State {
 	return state
 }
 
+// SetTheme switches the colour scheme.
+func (a *App) SetTheme(theme string) timer.State {
+	state := a.timer.SetTheme(theme)
+	_ = store.SaveSettings(state.Settings)
+	a.publish(state)
+	return state
+}
+
 // SetSingleKeyShortcuts toggles the letter based keyboard shortcuts.
 func (a *App) SetSingleKeyShortcuts(enabled bool) timer.State {
 	state := a.timer.SetSingleKeyShortcuts(enabled)

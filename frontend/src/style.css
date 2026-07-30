@@ -1,12 +1,12 @@
 html {
-    background-color: rgba(27, 38, 54, 1);
+    background-color: var(--bg-window);
     text-align: center;
-    color: white;
+    color: var(--fg);
 }
 
 body {
     margin: 0;
-    color: white;
+    color: var(--fg);
     font-family:
         "Nunito",
         -apple-system,

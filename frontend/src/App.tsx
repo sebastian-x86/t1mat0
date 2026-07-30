@@ -7,6 +7,7 @@ import {playChime, unlockAudio} from "./sound";
 import {useClockEdit} from "./hooks/useClockEdit";
 import {useShortcuts} from "./hooks/useShortcuts";
 import {prefersReducedMotion} from "./lib/motion";
+import {applyTheme, watchSystemTheme} from "./lib/theme";
 import ActionBar from "./components/ActionBar";
 import BeachScene from "./components/BeachScene";
 import Clock from "./components/Clock";
@@ -14,6 +15,7 @@ import HarvestHud from "./components/HarvestHud";
 import SettingsPanel from "./components/SettingsPanel";
 import ShortcutHelp from "./components/ShortcutHelp";
 import TomatoDrip from "./components/TomatoDrip";
+import "./styles/theme.css";
 import "./styles/base.css";
 import "./styles/a11y.css";
 
@@ -53,6 +55,17 @@ function App() {
             window.removeEventListener("keydown", unlock);
         };
     }, []);
+
+    // "auto" is resolved against the OS scheme, so a system flip has to be
+    // picked up while the window stays open.
+    const theme = state?.settings.theme ?? "auto";
+    useEffect(() => {
+        applyTheme(theme);
+        if (theme !== "auto") {
+            return;
+        }
+        return watchSystemTheme(() => applyTheme(theme));
+    }, [theme]);
 
     const clock = useClockEdit(state?.remainingSeconds, applyState, setError);
 

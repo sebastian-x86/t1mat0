@@ -14,7 +14,7 @@
     padding: 0;
     border: none;
     background: none;
-    color: #94a3b8;
+    color: var(--fg-label);
     cursor: pointer;
     transition:
         transform 0.3s ease,
@@ -22,7 +22,7 @@
 }
 
 .gear__button:hover {
-    color: #f8fafc;
+    color: var(--fg-strong);
 }
 
 .gear__button--open,
@@ -51,10 +51,10 @@
     display: flex;
     flex-direction: column;
     gap: 7px;
-    border: 1px solid rgba(148, 163, 184, 0.18);
+    border: 1px solid var(--panel-border);
     border-radius: 12px;
-    background: #1a2333;
-    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.5);
+    background: var(--panel);
+    box-shadow: var(--panel-shadow);
     text-align: left;
     font-size: 0.8rem;
     font-weight: 400;
@@ -69,9 +69,9 @@
     right: 13px;
     width: 9px;
     height: 9px;
-    background: #1a2333;
-    border-right: 1px solid rgba(148, 163, 184, 0.18);
-    border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+    background: var(--panel);
+    border-right: 1px solid var(--panel-border);
+    border-bottom: 1px solid var(--panel-border);
     transform: rotate(45deg);
 }
 
@@ -89,7 +89,7 @@
 .gear__divider {
     height: 1px;
     margin: 3px 0 1px;
-    background: rgba(148, 163, 184, 0.16);
+    background: var(--divider);
 }
 
 .field {
@@ -99,16 +99,16 @@
     gap: 8px;
     font-size: 0.8rem;
     font-weight: 400;
-    color: #9fb0c7;
+    color: var(--fg-label);
 }
 
 .field input {
     width: 74px;
     padding: 5px 8px;
-    border: 1px solid rgba(148, 163, 184, 0.2);
+    border: 1px solid var(--control-border);
     border-radius: 7px;
-    background: rgba(148, 163, 184, 0.1);
-    color: #e5edf7;
+    background: var(--control);
+    color: var(--fg-soft);
     font-family: inherit;
     font-size: 0.8rem;
     font-variant-numeric: tabular-nums;
@@ -133,12 +133,12 @@
 }
 
 .field input:hover {
-    background: rgba(148, 163, 184, 0.16);
+    background: var(--control-hover);
 }
 
 .field input:focus {
-    border-color: rgba(239, 68, 68, 0.7);
-    background: rgba(148, 163, 184, 0.16);
+    border-color: var(--accent);
+    background: var(--control-hover);
 }
 
 .gear__panel .btn {
@@ -149,21 +149,21 @@
 }
 
 .gear__panel .btn--primary {
-    background: rgba(239, 68, 68, 0.85);
+    background: var(--accent);
     border-color: transparent;
-    color: #fff5f5;
+    color: var(--on-accent);
 }
 
 .gear__panel .toggle {
     gap: 8px;
     font-size: 0.8rem;
-    color: #9fb0c7;
+    color: var(--fg-label);
 }
 
 .gear__panel .toggle input {
     width: 13px;
     height: 13px;
-    accent-color: #ef4444;
+    accent-color: var(--accent);
     cursor: pointer;
 }
 
@@ -171,20 +171,20 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #d1d5db;
+    color: var(--fg-muted);
     cursor: pointer;
 }
 
 .settings__hint {
     margin: 1px 0 3px;
-    color: #64748b;
+    color: var(--fg-faint);
     font-size: 0.68rem;
     line-height: 1.35;
 }
 
 .settings__error {
     margin: 0;
-    color: #fca5a5;
+    color: var(--danger-text);
     font-size: 0.72rem;
     line-height: 1.35;
 }

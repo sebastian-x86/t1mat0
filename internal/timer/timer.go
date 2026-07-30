@@ -29,6 +29,25 @@ const (
 	StatusPaused  Status = "paused"
 )
 
+// Theme selects the colour scheme of the window. "auto" follows the operating
+// system, which the frontend resolves through prefers-color-scheme.
+const (
+	ThemeAuto  = "auto"
+	ThemeLight = "light"
+	ThemeDark  = "dark"
+)
+
+// NormalizeTheme maps anything unknown back onto "auto", so a hand edited or
+// outdated settings file can never leave the window without a colour scheme.
+func NormalizeTheme(theme string) string {
+	switch theme {
+	case ThemeLight, ThemeDark:
+		return theme
+	default:
+		return ThemeAuto
+	}
+}
+
 // MaxPhaseSeconds caps a single phase at 600 minutes.
 const MaxPhaseSeconds = 600 * 60
 
@@ -44,6 +63,8 @@ type Settings struct {
 	AutoStartNext     bool `json:"autoStartNext"`
 	// Language is "auto", "en" or "de".
 	Language string `json:"language"`
+	// Theme is "auto", "light" or "dark".
+	Theme string `json:"theme"`
 	// SingleKeyShortcuts enables the letter shortcuts (space, n, r, ...).
 	// WCAG 2.1.4 requires them to be switchable off, because speech input
 	// and screen readers trigger bare character keys unintentionally.
@@ -103,6 +124,7 @@ func DefaultSettings() Settings {
 		SoundEnabled:       true,
 		AutoStartNext:      true,
 		Language:           i18n.LangAuto,
+		Theme:              ThemeAuto,
 		SingleKeyShortcuts: true,
 	}
 }
@@ -162,6 +184,7 @@ func NewTimer(settings Settings) *Timer {
 	if err := settings.Validate(); err != nil {
 		settings = DefaultSettings()
 	}
+	settings.Theme = NormalizeTheme(settings.Theme)
 	t := &Timer{
 		settings: settings,
 		status:   StatusIdle,
@@ -352,6 +375,7 @@ func (t *Timer) UpdateSettings(next Settings) (State, error) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 
+	next.Theme = NormalizeTheme(next.Theme)
 	t.settings = next
 	if t.status == StatusIdle {
 		t.remainingSeconds = t.phaseDurationSeconds(t.phase)
@@ -410,6 +434,14 @@ func (t *Timer) SetLanguage(language string) State {
 	default:
 		t.settings.Language = i18n.LangAuto
 	}
+	return t.snapshotLocked()
+}
+
+// SetTheme stores the colour scheme preference ("auto", "light" or "dark").
+func (t *Timer) SetTheme(theme string) State {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.settings.Theme = NormalizeTheme(theme)
 	return t.snapshotLocked()
 }
 

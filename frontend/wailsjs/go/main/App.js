@@ -46,6 +46,10 @@ export function SetSoundEnabled(arg1) {
   return window['go']['main']['App']['SetSoundEnabled'](arg1);
 }
 
+export function SetTheme(arg1) {
+  return window['go']['main']['App']['SetTheme'](arg1);
+}
+
 export function ShowWindow() {
   return window['go']['main']['App']['ShowWindow']();
 }

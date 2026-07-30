@@ -3,7 +3,7 @@
     font-family: inherit;
     font-size: 15px;
     font-weight: 700;
-    fill: #e2e8f0;
+    fill: var(--fg-soft);
     opacity: 0;
     transform-box: fill-box;
     transform-origin: center;

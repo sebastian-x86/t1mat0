@@ -62,6 +62,11 @@ const strings = {
         language: "Language",
         languageTitle: "Language of the interface, the tray menu and the notifications",
         languageAuto: "Auto (system)",
+        theme: "Theme",
+        themeTitle: "Colour scheme of the window",
+        themeAuto: "Auto (system)",
+        themeLight: "Light",
+        themeDark: "Dark",
 
         shortcuts: "Keyboard shortcuts",
         shortcutsTitle: "Keyboard shortcuts (F1)",
@@ -143,6 +148,11 @@ const strings = {
         language: "Sprache",
         languageTitle: "Sprache der Oberfläche, des Tray-Menüs und der Benachrichtigungen",
         languageAuto: "Automatisch (System)",
+        theme: "Design",
+        themeTitle: "Farbschema des Fensters",
+        themeAuto: "Automatisch (System)",
+        themeLight: "Hell",
+        themeDark: "Dunkel",
 
         shortcuts: "Tastaturkürzel",
         shortcutsTitle: "Tastaturkürzel (F1)",

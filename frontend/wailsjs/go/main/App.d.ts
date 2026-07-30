@@ -24,6 +24,8 @@ export function SetSingleKeyShortcuts(arg1:boolean):Promise<timer.State>;
 
 export function SetSoundEnabled(arg1:boolean):Promise<timer.State>;
 
+export function SetTheme(arg1:string):Promise<timer.State>;
+
 export function ShowWindow():Promise<void>;
 
 export function Skip():Promise<timer.State>;

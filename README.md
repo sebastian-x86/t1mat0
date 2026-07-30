@@ -39,6 +39,8 @@ Electron, keine Laufzeitumgebung, keine Installation nötig.
   Strandszene mit springenden Fischen (siehe [Szenen](#szenen))
 - **Zweisprachig:** Deutsch und Englisch, automatisch nach OS-Sprache
   (siehe [Sprache](#sprache))
+- **Hell und dunkel:** folgt dem System oder fest eingestellt
+  (siehe [Design](#design))
 - **Komplett per Tastatur bedienbar**, mit abschaltbaren Ein-Tasten-Kürzeln
   (siehe [Tastatur](#tastatur))
 - **Barrierefrei gedacht:** Live-Region, ARIA-Rollen, sichtbarer Fokus,
@@ -145,6 +147,7 @@ die Zeile in jeder Sprache ins Fenster.
 | Always on Top | Checkbox (Zahnrad-Menü) | Checkbox |
 | Sound an/aus | Checkbox (Zahnrad-Menü) | Checkbox |
 | Sprache | Flaggen-Auswahl (Zahnrad-Menü) | — |
+| Design (hell/dunkel) | Symbol-Auswahl (Zahnrad-Menü) | — |
 | Fenster ein-/ausblenden | — | `Show / Hide` |
 | Beenden | — | `Quit` |
 
@@ -244,6 +247,19 @@ Betriebssystems (`GetUserDefaultLocaleName` unter Windows, `LC_ALL`/`LANG` sonst
 Im Zahnrad-Menü lässt sich das über **Sprache / Language** überschreiben:
 `Automatisch (System)`, `Deutsch` oder `English`. Die Wahl landet als
 `language` in der `settings.json` und wirkt sofort, auch im Tray.
+
+## Design
+
+Das Fenster gibt es in **Hell und Dunkel**. Voreingestellt ist
+`Automatisch (System)`: die App übernimmt das Farbschema des Betriebssystems
+(`prefers-color-scheme`) und wechselt mit, wenn es im laufenden Betrieb
+umgestellt wird.
+
+Im Zahnrad-Menü lässt sich das über **Design / Theme** festnageln:
+`Automatisch (System)`, `Hell` oder `Dunkel`. Die Wahl landet als `theme` in
+der `settings.json` und gilt sofort. Die Phasenfarben (rot, grün, blau) sind im
+hellen Design etwas dunkler, damit Text auf farbigen Flächen den Kontrast von
+WCAG 2.1 AA hält.
 
 ## Tomaten sammeln
 
@@ -380,7 +396,8 @@ Unter WSL2 daher am besten die Windows-Exe testen (siehe
 ## Einstellungen
 
 Die Einstellungen klappen aus dem Zahnrad unten rechts nach oben auf: Dauern,
-Long-Break-Intervall, Sprache, Always on Top, Sound und die Ein-Tasten-Kürzel.
+Long-Break-Intervall, Sprache, Design, Always on Top, Sound und die
+Ein-Tasten-Kürzel.
 Die Restzeit lässt sich zusätzlich direkt im Uhrenfeld überschreiben (siehe
 [Zeit direkt ändern](#zeit-direkt-ändern)).
 
@@ -395,6 +412,7 @@ neben der Binary.
 | `longBreakSeconds` | 900 | Dauer der langen Pause (Sekunden) |
 | `longBreakEvery` | 4 | Nach wie vielen Arbeitsphasen die lange Pause kommt |
 | `language` | "auto" | Sprache: `auto` (vom System), `de` oder `en` |
+| `theme` | "auto" | Design: `auto` (vom System), `light` oder `dark` |
 | `alwaysOnTop` | false | Fenster immer im Vordergrund |
 | `soundEnabled` | true | Chime bei Phasenwechsel |
 | `singleKeyShortcuts` | true | Ein-Tasten-Kürzel (`Space`, `R`, `N`, …) aktiv |
@@ -439,13 +457,14 @@ SECURITY.md            Wie Sicherheitslücken gemeldet werden
 build/                 Icons, Installer-Vorlagen, Build-Artefakte
 frontend/src/App.tsx   React-Wurzel: Zustand, Szenenauswahl, Verdrahtung
 frontend/src/components/   Clock, SettingsPanel, ShortcutHelp, ActionBar,
-                       HarvestHud, LanguagePicker und die SVG-Szenen
+                       HarvestHud, LanguagePicker, ThemePicker und die SVG-Szenen
                        TomatoDrip, BeachScene, SnoozeZs — Styles je Komponente
                        daneben (z. B. Clock.css)
 frontend/src/hooks/    useClockEdit, useShortcuts, useWheel
 frontend/src/lib/      DOM-Helfer: clockPointer (mm:ss unter dem Mauszeiger),
-                       motion (prefers-reduced-motion)
-frontend/src/styles/   base.css (Fenster, Phasenfarben) und a11y.css (Fokus)
+                       motion (prefers-reduced-motion), theme (hell/dunkel)
+frontend/src/styles/   theme.css (Farbtokens hell/dunkel), base.css (Fenster,
+                       Phasenfarben) und a11y.css (Fokus)
 frontend/src/i18n.ts   Deutsch/Englisch-Wörterbuch der Oberfläche
 frontend/src/duration.ts   mm:ss-Logik der Uhr (mit Vitest getestet)
 frontend/wailsjs/      Generierte Go-Bindings (nicht manuell bearbeiten)

@@ -11,10 +11,10 @@
     justify-content: center;
     gap: 7px;
     padding: 10px 12px;
-    border: 1px solid #374151;
+    border: 1px solid var(--surface-border);
     border-radius: 10px;
-    background: #1f2937;
-    color: #f9fafb;
+    background: var(--surface);
+    color: var(--fg);
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
@@ -28,13 +28,13 @@
 }
 
 .btn:hover {
-    background: #374151;
+    background: var(--surface-hover);
 }
 
 .btn--primary {
     background: var(--accent);
     border-color: var(--accent);
-    color: #ffffff;
+    color: var(--on-accent);
 }
 
 .btn--primary:hover {
@@ -62,6 +62,6 @@
 .btn--active,
 .btn--active:hover {
     border-color: var(--accent);
-    background: rgba(148, 163, 184, 0.18);
-    color: #f8fafc;
+    background: var(--control-active);
+    color: var(--fg-strong);
 }
