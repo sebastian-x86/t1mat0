@@ -67,6 +67,9 @@ func TestLoadSettingsKeepsDefaultsForMissingFlags(t *testing.T) {
 	if !settings.CloseToTray {
 		t.Fatal("expected closeToTray to stay on for an old settings file")
 	}
+	if !settings.NotificationsEnabled {
+		t.Fatal("expected notificationsEnabled to stay on for an old settings file")
+	}
 	if settings.Theme != timer.ThemeAuto {
 		t.Fatalf("expected the auto theme, got %q", settings.Theme)
 	}

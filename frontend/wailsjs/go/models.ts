@@ -26,6 +26,7 @@ export namespace timer {
 	    autoStartNext: boolean;
 	    language: string;
 	    theme: string;
+	    notificationsEnabled: boolean;
 	    closeToTray: boolean;
 	    singleKeyShortcuts: boolean;
 	
@@ -44,6 +45,7 @@ export namespace timer {
 	        this.autoStartNext = source["autoStartNext"];
 	        this.language = source["language"];
 	        this.theme = source["theme"];
+	        this.notificationsEnabled = source["notificationsEnabled"];
 	        this.closeToTray = source["closeToTray"];
 	        this.singleKeyShortcuts = source["singleKeyShortcuts"];
 	    }

@@ -42,6 +42,10 @@ export function SetLanguage(arg1) {
   return window['go']['main']['App']['SetLanguage'](arg1);
 }
 
+export function SetNotificationsEnabled(arg1) {
+  return window['go']['main']['App']['SetNotificationsEnabled'](arg1);
+}
+
 export function SetSingleKeyShortcuts(arg1) {
   return window['go']['main']['App']['SetSingleKeyShortcuts'](arg1);
 }

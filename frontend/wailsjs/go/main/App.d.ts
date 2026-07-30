@@ -22,6 +22,8 @@ export function SetCurrentDuration(arg1:number):Promise<timer.State>;
 
 export function SetLanguage(arg1:string):Promise<timer.State>;
 
+export function SetNotificationsEnabled(arg1:boolean):Promise<timer.State>;
+
 export function SetSingleKeyShortcuts(arg1:boolean):Promise<timer.State>;
 
 export function SetSoundEnabled(arg1:boolean):Promise<timer.State>;

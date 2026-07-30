@@ -157,6 +157,20 @@ func TestThemeFallsBackToAutoOnLoad(t *testing.T) {
 	}
 }
 
+func TestSetNotificationsEnabledStoresThePreference(t *testing.T) {
+	timer := NewTimer(testSettings())
+
+	if !DefaultSettings().NotificationsEnabled {
+		t.Fatal("notifications should be on by default")
+	}
+	if state := timer.SetNotificationsEnabled(false); state.Settings.NotificationsEnabled {
+		t.Fatal("expected notifications to be off")
+	}
+	if state := timer.SetNotificationsEnabled(true); !state.Settings.NotificationsEnabled {
+		t.Fatal("expected notifications to be on")
+	}
+}
+
 func TestSetCloseToTrayStoresThePreference(t *testing.T) {
 	timer := NewTimer(testSettings())
 
