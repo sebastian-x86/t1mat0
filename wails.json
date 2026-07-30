@@ -8,7 +8,7 @@
   "frontend:dev:serverUrl": "auto",
   "info": {
     "productName": "t1mat0",
-    "productVersion": "0.3.0",
+    "productVersion": "0.4.0",
     "comments": "Pomodoro Timer"
   },
   "author": {
