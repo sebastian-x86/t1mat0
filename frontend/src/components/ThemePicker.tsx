@@ -1,3 +1,4 @@
+import SystemIcon from "./SystemIcon";
 import "./ThemePicker.css";
 
 /**
@@ -12,24 +13,6 @@ type Props = {
     lightLabel: string;
     darkLabel: string;
 };
-
-function Monitor() {
-    return (
-        <svg className="themeswitch__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <rect
-                x="3"
-                y="4"
-                width="18"
-                height="12"
-                rx="2"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.8"
-            />
-            <path d="M9 20h6M12 16v4" fill="none" stroke="currentColor" strokeWidth="1.8" />
-        </svg>
-    );
-}
 
 function Sun() {
     return (
@@ -62,7 +45,7 @@ function Moon() {
 
 export default function ThemePicker({value, onChange, autoLabel, lightLabel, darkLabel}: Props) {
     const options = [
-        {id: "auto", label: autoLabel, icon: <Monitor />},
+        {id: "auto", label: autoLabel, icon: <SystemIcon className="themeswitch__icon" />},
         {id: "light", label: lightLabel, icon: <Sun />},
         {id: "dark", label: darkLabel, icon: <Moon />},
     ];
