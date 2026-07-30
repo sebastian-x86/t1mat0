@@ -1,3 +1,5 @@
+import "./SnoozeZs.css";
+
 /**
  * Floating "z" letters for the paused state. They drift up and away from a
  * given point inside the scene, which makes a stopped timer readable at a

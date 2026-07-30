@@ -1,4 +1,4 @@
-export namespace main {
+export namespace timer {
 	
 	export class Harvest {
 	    tomatoes: number;

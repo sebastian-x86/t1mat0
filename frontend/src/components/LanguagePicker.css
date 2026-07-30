@@ -1,0 +1,45 @@
+.langswitch {
+    display: flex;
+    gap: 4px;
+}
+
+.langswitch__option {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 7px;
+    background: rgba(148, 163, 184, 0.1);
+    color: #9fb0c7;
+    cursor: pointer;
+    transition:
+        border-color 0.15s ease,
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+.langswitch__option:hover {
+    background: rgba(148, 163, 184, 0.16);
+    color: #e5edf7;
+}
+
+.langswitch__option--on {
+    border-color: rgba(239, 68, 68, 0.7);
+    background: rgba(239, 68, 68, 0.14);
+    color: #e5edf7;
+}
+
+.langswitch__icon {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+.langswitch__flag {
+    width: 20px;
+    height: 13px;
+    border-radius: 2px;
+}

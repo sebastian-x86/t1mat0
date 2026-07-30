@@ -418,12 +418,17 @@ CONTRIBUTING.md        Commit-Konvention, Tests, Release-Ablauf
 SECURITY.md            Wie Sicherheitslücken gemeldet werden
 .github/workflows/     CI (Tests, Coverage-Badge), CodeQL und Release
 build/                 Icons, Installer-Vorlagen, Build-Artefakte
-frontend/src/          React-UI: App.tsx (Fenster), App.css, sound.ts
+frontend/src/App.tsx   React-Wurzel: Zustand, Szenenauswahl, Verdrahtung
+frontend/src/components/   Clock, SettingsPanel, ShortcutHelp, ActionBar,
+                       HarvestHud, LanguagePicker und die SVG-Szenen
+                       TomatoDrip, BeachScene, SnoozeZs — Styles je Komponente
+                       daneben (z. B. Clock.css)
+frontend/src/hooks/    useClockEdit, useShortcuts, useWheel
+frontend/src/lib/      DOM-Helfer: clockPointer (mm:ss unter dem Mauszeiger),
+                       motion (prefers-reduced-motion)
+frontend/src/styles/   base.css (Fenster, Phasenfarben) und a11y.css (Fokus)
 frontend/src/i18n.ts   Deutsch/Englisch-Wörterbuch der Oberfläche
 frontend/src/duration.ts   mm:ss-Logik der Uhr (mit Vitest getestet)
-frontend/src/*Scene/Drip   SVG-Szenen: TomatoDrip, BeachScene, SnoozeZs
-frontend/src/HarvestHud.tsx     Tomatenzähler mit Serien-Badge
-frontend/src/LanguagePicker.tsx Sprachauswahl mit Flaggen
 frontend/wailsjs/      Generierte Go-Bindings (nicht manuell bearbeiten)
 ```
 

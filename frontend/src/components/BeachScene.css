@@ -1,0 +1,343 @@
+/* --- Break scene ------------------------------------------------------- */
+
+.beach {
+    --wails-draggable: no-drag;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.beach__svg {
+    width: 100%;
+    height: 100%;
+    max-height: 250px;
+    overflow: visible;
+}
+
+.beach__sun {
+    fill: url(#beach-sun);
+}
+
+.beach__sun-glow {
+    fill: #fbbf24;
+    opacity: 0.12;
+}
+
+.beach__sun-group {
+    transition: transform 0.8s cubic-bezier(0.33, 1, 0.68, 1);
+    will-change: transform;
+}
+
+.beach__rays {
+    stroke: #fcd34d;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    opacity: 0.55;
+}
+
+.beach--running .beach__rays {
+    /* The rays sit around the local origin, which is the sun centre after the
+       parent group is translated — rotating around it keeps them in place. */
+    transform-origin: 0 0;
+    animation: beach-rays 14s ease-in-out infinite;
+}
+
+.beach__bird {
+    fill: none;
+    stroke: #cbd5e1;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    opacity: 0.45;
+}
+
+.beach__bird--a {
+    transform: translate(46px, 66px);
+}
+
+.beach__bird--b {
+    transform: translate(78px, 54px);
+}
+
+.beach--running .beach__bird--a {
+    animation: beach-bird-a 14s ease-in-out infinite;
+}
+
+.beach--running .beach__bird--b {
+    animation: beach-bird-b 18s ease-in-out infinite;
+}
+
+.beach__sand {
+    fill: url(#beach-sand);
+}
+
+.beach__sand-rim {
+    fill: none;
+    stroke: #fde9c0;
+    stroke-width: 1.5;
+    opacity: 0.35;
+}
+
+.beach__water {
+    fill: url(#beach-water);
+}
+
+.beach__water-rim {
+    fill: none;
+    stroke: #bae6fd;
+    stroke-width: 1.5;
+    opacity: 0.5;
+}
+
+.beach__wave {
+    fill: none;
+    stroke: #e0f2fe;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    opacity: 0.55;
+}
+
+.beach--running .beach__wave {
+    animation: beach-wave 4.5s ease-in-out infinite;
+}
+
+.beach__fish-body {
+    fill: #fb923c;
+}
+
+.beach__fish-tail,
+.beach__fish-fin {
+    fill: #f97316;
+}
+
+.beach__fish-eye {
+    fill: #1f2937;
+}
+
+.beach__fish-jump {
+    opacity: 0;
+}
+
+.beach--running .beach__fish-jump {
+    animation: beach-fish 5.2s ease-in-out infinite;
+}
+
+.beach__flopper {
+    opacity: 0;
+}
+
+.beach--running .beach__flopper--out {
+    animation: beach-flop-out 0.9s ease-out both;
+}
+
+.beach--running .beach__flopper--flop {
+    opacity: 1;
+    animation: beach-flop-wiggle 0.42s ease-in-out infinite;
+}
+
+.beach--running .beach__flopper--back {
+    animation: beach-flop-back 0.9s ease-in both;
+}
+
+@keyframes beach-flop-out {
+    0% {
+        transform: translate(0, 0) rotate(-50deg);
+        opacity: 0;
+    }
+    12% {
+        opacity: 1;
+    }
+    50% {
+        transform: translate(calc(var(--flop-x) / 2), calc(var(--flop-y) - 44px)) rotate(0deg);
+        opacity: 1;
+    }
+    88% {
+        transform: translate(calc(var(--flop-x) * 0.92), calc(var(--flop-y) + 2px)) rotate(24deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--flop-x), var(--flop-y)) rotate(8deg);
+        opacity: 1;
+    }
+}
+
+@keyframes beach-flop-wiggle {
+    0%,
+    100% {
+        transform: translate(var(--flop-x), var(--flop-y)) rotate(-16deg);
+    }
+    50% {
+        transform: translate(var(--flop-x), calc(var(--flop-y) - 4px)) rotate(18deg);
+    }
+}
+
+@keyframes beach-flop-back {
+    0% {
+        transform: translate(var(--flop-x), var(--flop-y)) rotate(0deg);
+        opacity: 1;
+    }
+    50% {
+        transform: translate(calc(var(--flop-x) / 2), calc(var(--flop-y) - 50px)) rotate(-35deg);
+        opacity: 1;
+    }
+    92% {
+        transform: translate(0, 4px) rotate(-110deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(0, 8px) rotate(-125deg);
+        opacity: 0;
+    }
+}
+
+.beach__glass-shadow {
+    fill: #a97c42;
+    opacity: 0.3;
+}
+
+.beach__glass-body {
+    fill: #ffffff;
+    opacity: 0.18;
+}
+
+.beach__glass-outline {
+    fill: none;
+    stroke: #f8fafc;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    opacity: 0.75;
+}
+
+.beach__drink {
+    fill: #f472b6;
+    transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1);
+    will-change: transform;
+}
+
+.beach__straw {
+    stroke: #f8fafc;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    opacity: 0.85;
+}
+
+.beach__lemon {
+    fill: #fde047;
+}
+
+.beach__lemon-peel {
+    fill: #facc15;
+}
+
+.beach__umbrella {
+    fill: #f43f5e;
+}
+
+.beach__umbrella-stick {
+    stroke: #fef3c7;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+}
+
+.beach__starfish {
+    fill: #fb7185;
+    opacity: 0.9;
+}
+
+.beach__shells {
+    fill: #fff7ed;
+    opacity: 0.75;
+}
+
+@keyframes beach-rays {
+    0%,
+    100% {
+        transform: rotate(-7deg);
+        opacity: 0.45;
+    }
+    50% {
+        transform: rotate(7deg);
+        opacity: 0.65;
+    }
+}
+
+@keyframes beach-bird-a {
+    0% {
+        transform: translate(20px, 74px);
+    }
+    50% {
+        transform: translate(80px, 58px);
+    }
+    100% {
+        transform: translate(140px, 74px);
+    }
+}
+
+@keyframes beach-bird-b {
+    0% {
+        transform: translate(140px, 50px);
+    }
+    50% {
+        transform: translate(80px, 40px);
+    }
+    100% {
+        transform: translate(20px, 50px);
+    }
+}
+
+@keyframes beach-wave {
+    0%,
+    100% {
+        transform: translateX(-6px);
+    }
+    50% {
+        transform: translateX(10px);
+    }
+}
+
+@keyframes beach-fish {
+    0%,
+    62% {
+        transform: translate(0, 8px) rotate(-40deg);
+        opacity: 0;
+    }
+    68% {
+        opacity: 1;
+    }
+    80% {
+        transform: translate(6px, -34px) rotate(0deg);
+        opacity: 1;
+    }
+    94% {
+        transform: translate(16px, 6px) rotate(48deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(18px, 12px) rotate(56deg);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .beach__drink,
+    .beach__sun-group {
+        transition: none;
+    }
+
+    .beach--running .beach__rays,
+    .beach--running .beach__bird--a,
+    .beach--running .beach__bird--b,
+    .beach--running .beach__wave,
+    .beach--running .beach__fish-jump,
+    .beach--running .beach__flopper--out,
+    .beach--running .beach__flopper--flop,
+    .beach--running .beach__flopper--back {
+        animation: none;
+    }
+
+    .beach--running .beach__fish-jump {
+        opacity: 1;
+    }
+}

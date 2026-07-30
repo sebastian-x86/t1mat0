@@ -1,0 +1,59 @@
+:root {
+    --accent-work: #ef4444;
+    --accent-short: #22c55e;
+    --accent-long: #3b82f6;
+    --accent: var(--accent-work);
+}
+
+.app {
+    --wails-draggable: drag;
+    min-height: 100vh;
+    /* The stomping leg reaches past the scene, so clip it at the window edge. */
+    overflow: hidden;
+    padding: 20px 22px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-sizing: border-box;
+    color: #f9fafb;
+    background: #111827;
+    font-family:
+        "Nunito",
+        system-ui,
+        -apple-system,
+        sans-serif;
+    text-align: left;
+}
+
+.app--work {
+    --accent: var(--accent-work);
+}
+
+.app--shortBreak {
+    --accent: var(--accent-short);
+}
+
+.app--longBreak {
+    --accent: var(--accent-long);
+}
+
+.app--loading {
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+}
+
+.app__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.app__phase {
+    margin-left: auto;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--accent);
+    cursor: help;
+    user-select: none;
+}

@@ -1,0 +1,102 @@
+/* Harvest HUD ---------------------------------------------------------- */
+
+.harvest {
+    --wails-draggable: no-drag;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.harvest__total,
+.harvest__streak {
+    /* Nothing to click here, it only explains itself on hover. */
+    cursor: help;
+    user-select: none;
+}
+
+.harvest__total {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.harvest__icon {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    transition: transform 0.25s ease;
+}
+
+.harvest__body {
+    fill: var(--accent-work);
+}
+
+.harvest__leaf {
+    fill: #4ade80;
+}
+
+.harvest__shine {
+    fill: rgba(255, 255, 255, 0.45);
+}
+
+.harvest__count {
+    font-size: 0.95rem;
+    line-height: 1;
+    font-weight: 700;
+    color: #e2e8f0;
+    letter-spacing: 0.02em;
+}
+
+.harvest__streak {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: rgba(248, 113, 113, 0.16);
+    color: #fca5a5;
+    font-size: 0.64rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* A freshly earned tomato pops like a collected coin. */
+.harvest--pop .harvest__icon {
+    animation: harvest-pop 0.9s ease;
+}
+
+.harvest--pop .harvest__count {
+    animation: harvest-count 0.9s ease;
+}
+
+@keyframes harvest-pop {
+    0% {
+        transform: scale(1);
+    }
+    35% {
+        transform: scale(1.45) translateY(-3px);
+    }
+    60% {
+        transform: scale(0.92);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes harvest-count {
+    0%,
+    100% {
+        transform: scale(1);
+        color: #e2e8f0;
+    }
+    40% {
+        transform: scale(1.25);
+        color: var(--accent-work);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .harvest--pop .harvest__icon,
+    .harvest--pop .harvest__count {
+        animation: none;
+    }
+}

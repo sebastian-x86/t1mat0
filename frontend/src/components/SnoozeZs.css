@@ -1,0 +1,51 @@
+/* Paused state: little "z" letters drift off the tomato or the lagoon. */
+.snooze__z {
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 700;
+    fill: #e2e8f0;
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: snooze-drift 3.6s ease-out infinite;
+}
+
+.snooze__z--1 {
+    animation-delay: 1.2s;
+}
+
+.snooze__z--2 {
+    animation-delay: 2.4s;
+}
+
+@keyframes snooze-drift {
+    0% {
+        opacity: 0;
+        transform: translate(0, 0) scale(0.45) rotate(-12deg);
+    }
+    18% {
+        opacity: 0.85;
+    }
+    70% {
+        opacity: 0.6;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(22px, -46px) scale(1.25) rotate(12deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* Without the drift all three would sit on top of each other, so only one
+       stays and simply hangs in the air. */
+    .snooze__z {
+        animation: none;
+        opacity: 0.75;
+        transform: translate(10px, -20px);
+    }
+
+    .snooze__z--1,
+    .snooze__z--2 {
+        display: none;
+    }
+}

@@ -1,4 +1,5 @@
 import SnoozeZs from "./SnoozeZs";
+import "./TomatoDrip.css";
 
 const LEAF_ANGLES = [0, 72, 144, 216, 288];
 
