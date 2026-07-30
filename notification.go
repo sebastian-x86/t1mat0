@@ -33,9 +33,7 @@ type notice struct {
 func phaseEmoji(phase timer.Phase) string {
 	switch phase {
 	case timer.PhaseShortBreak:
-		// U+FE0F forces the colour glyph; without it Windows draws the plain
-		// text version of the cup.
-		return "\u2615\ufe0f"
+		return "☕"
 	case timer.PhaseLongBreak:
 		return "🌴"
 	default:
