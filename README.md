@@ -466,7 +466,8 @@ frontend/src/hooks/    useClockEdit, useShortcuts, useWheel
 frontend/src/lib/      DOM-Helfer: clockPointer (mm:ss unter dem Mauszeiger),
                        motion (prefers-reduced-motion), theme (hell/dunkel)
 frontend/src/styles/   theme.css (Farbtokens hell/dunkel), base.css (Fenster,
-                       Phasenfarben) und a11y.css (Fokus)
+                       Phasenfarben), segmented.css (Sprach-/Design-Auswahl)
+                       und a11y.css (Fokus)
 frontend/src/i18n.ts   Deutsch/Englisch-Wörterbuch der Oberfläche
 frontend/src/duration.ts   mm:ss-Logik der Uhr (mit Vitest getestet)
 frontend/wailsjs/      Generierte Go-Bindings (nicht manuell bearbeiten)

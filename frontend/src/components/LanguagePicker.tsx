@@ -1,5 +1,5 @@
 import SystemIcon from "./SystemIcon";
-import "./LanguagePicker.css";
+import "../styles/segmented.css";
 
 /**
  * Language choice as a small segmented control. A native <select> pops open a
@@ -17,7 +17,7 @@ type Props = {
 
 function FlagDE() {
     return (
-        <svg className="langswitch__flag" viewBox="0 0 60 40" aria-hidden="true">
+        <svg className="segmented__flag" viewBox="0 0 60 40" aria-hidden="true">
             <rect width="60" height="13.34" y="0" fill="#000000" />
             <rect width="60" height="13.34" y="13.33" fill="#dd0000" />
             <rect width="60" height="13.34" y="26.66" fill="#ffce00" />
@@ -27,7 +27,7 @@ function FlagDE() {
 
 function FlagGB() {
     return (
-        <svg className="langswitch__flag" viewBox="0 0 60 40" aria-hidden="true">
+        <svg className="segmented__flag" viewBox="0 0 60 40" aria-hidden="true">
             <clipPath id="gb-clip">
                 <rect width="60" height="40" />
             </clipPath>
@@ -44,13 +44,13 @@ function FlagGB() {
 
 export default function LanguagePicker({value, onChange, autoLabel}: Props) {
     const options = [
-        {id: "auto", label: autoLabel, icon: <SystemIcon className="langswitch__icon" />},
+        {id: "auto", label: autoLabel, icon: <SystemIcon />},
         {id: "de", label: "Deutsch", icon: <FlagDE />},
         {id: "en", label: "English", icon: <FlagGB />},
     ];
 
     return (
-        <div className="langswitch" role="radiogroup" aria-label={autoLabel}>
+        <div className="segmented" role="radiogroup" aria-label={autoLabel}>
             {options.map((option) => (
                 <button
                     key={option.id}
@@ -60,8 +60,7 @@ export default function LanguagePicker({value, onChange, autoLabel}: Props) {
                     aria-label={option.label}
                     title={option.label}
                     className={
-                        "langswitch__option" +
-                        (value === option.id ? " langswitch__option--on" : "")
+                        "segmented__option" + (value === option.id ? " segmented__option--on" : "")
                     }
                     onClick={() => onChange(option.id)}
                 >

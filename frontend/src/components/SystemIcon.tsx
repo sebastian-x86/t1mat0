@@ -2,9 +2,9 @@
  * Monitor icon, used by both segmented controls for their "follow the system"
  * option, so language and theme read as the same kind of choice.
  */
-export default function SystemIcon({className}: {className: string}) {
+export default function SystemIcon() {
     return (
-        <svg className={className} viewBox="0 0 24 24" aria-hidden="true">
+        <svg className="segmented__icon" viewBox="0 0 24 24" aria-hidden="true">
             <rect
                 x="3"
                 y="4"

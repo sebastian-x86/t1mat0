@@ -1,13 +1,19 @@
-.themeswitch {
+/* Segmented controls ---------------------------------------------------- *
+ * Shared by the language and the theme picker. Both sit in the settings
+ * panel underneath each other, so they have to line up on both edges — hence
+ * one stylesheet instead of two that drift apart.
+ */
+
+.segmented {
     display: flex;
     gap: 4px;
 }
 
-.themeswitch__option {
+.segmented__option {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
+    width: 32px;
     height: 24px;
     padding: 0;
     border: 1px solid var(--control-border);
@@ -21,19 +27,25 @@
         color 0.15s ease;
 }
 
-.themeswitch__option:hover {
+.segmented__option:hover {
     background: var(--control-hover);
     color: var(--fg-soft);
 }
 
-.themeswitch__option--on {
+.segmented__option--on {
     border-color: var(--accent);
     background: var(--accent-veil);
     color: var(--fg-soft);
 }
 
-.themeswitch__icon {
-    width: 15px;
-    height: 15px;
-    fill: none;
+.segmented__icon {
+    width: 16px;
+    height: 16px;
+    fill: currentColor;
+}
+
+.segmented__flag {
+    width: 20px;
+    height: 13px;
+    border-radius: 2px;
 }
