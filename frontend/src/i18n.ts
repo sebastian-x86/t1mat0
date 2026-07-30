@@ -67,6 +67,8 @@ const strings = {
         themeAuto: "Auto (system)",
         themeLight: "Light",
         themeDark: "Dark",
+        notifications: "Notifications",
+        notificationsTitle: "Show a desktop notification when a phase ends",
         closeToTray: "Close to notification area",
         closeToTrayTitle:
             "Closing the window keeps the timer running in the notification area instead of quitting",
@@ -156,6 +158,8 @@ const strings = {
         themeAuto: "Automatisch (System)",
         themeLight: "Hell",
         themeDark: "Dunkel",
+        notifications: "Benachrichtigungen",
+        notificationsTitle: "Beim Phasenende eine Desktop-Benachrichtigung zeigen",
         closeToTray: "Schließen in den Infobereich",
         closeToTrayTitle:
             "Beim Schließen läuft der Timer im Infobereich weiter, statt sich zu beenden",

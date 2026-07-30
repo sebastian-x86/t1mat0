@@ -65,6 +65,8 @@ type Settings struct {
 	Language string `json:"language"`
 	// Theme is "auto", "light" or "dark".
 	Theme string `json:"theme"`
+	// NotificationsEnabled sends a desktop notification on every phase change.
+	NotificationsEnabled bool `json:"notificationsEnabled"`
 	// CloseToTray keeps the app running in the notification area when the
 	// window is closed. Without a tray icon it is ignored, because nothing
 	// would be left to bring the window back.
@@ -120,17 +122,18 @@ func hasKey(data []byte, key string) bool {
 // DefaultSettings returns the classic pomodoro configuration.
 func DefaultSettings() Settings {
 	return Settings{
-		WorkSeconds:        25 * 60,
-		ShortBreakSeconds:  5 * 60,
-		LongBreakSeconds:   15 * 60,
-		LongBreakEvery:     4,
-		AlwaysOnTop:        false,
-		SoundEnabled:       true,
-		AutoStartNext:      true,
-		Language:           i18n.LangAuto,
-		Theme:              ThemeAuto,
-		CloseToTray:        true,
-		SingleKeyShortcuts: true,
+		WorkSeconds:          25 * 60,
+		ShortBreakSeconds:    5 * 60,
+		LongBreakSeconds:     15 * 60,
+		LongBreakEvery:       4,
+		AlwaysOnTop:          false,
+		SoundEnabled:         true,
+		AutoStartNext:        true,
+		Language:             i18n.LangAuto,
+		Theme:                ThemeAuto,
+		CloseToTray:          true,
+		NotificationsEnabled: true,
+		SingleKeyShortcuts:   true,
 	}
 }
 
@@ -447,6 +450,14 @@ func (t *Timer) SetTheme(theme string) State {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.settings.Theme = NormalizeTheme(theme)
+	return t.snapshotLocked()
+}
+
+// SetNotificationsEnabled stores whether phase changes are announced.
+func (t *Timer) SetNotificationsEnabled(enabled bool) State {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.settings.NotificationsEnabled = enabled
 	return t.snapshotLocked()
 }
 

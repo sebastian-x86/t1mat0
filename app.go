@@ -130,7 +130,7 @@ func (a *App) announcePhase(state timer.State, finished timer.Phase) {
 		return
 	}
 
-	if !a.notifyDisabled {
+	if !a.notifyDisabled && state.Settings.NotificationsEnabled {
 		n := noticeFor(state, finished)
 		// Falls back to a plain notification on its own if the category is
 		// unknown, which is what happens on platforms without action support.
@@ -317,6 +317,14 @@ func (a *App) handleNotificationResponse(result wailsRuntime.NotificationResult)
 	default:
 		a.ShowWindow()
 	}
+}
+
+// SetNotificationsEnabled toggles the desktop notifications.
+func (a *App) SetNotificationsEnabled(enabled bool) timer.State {
+	state := a.timer.SetNotificationsEnabled(enabled)
+	_ = store.SaveSettings(state.Settings)
+	a.publish(state)
+	return state
 }
 
 // SetCloseToTray toggles whether the close button hides the window.

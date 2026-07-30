@@ -3,6 +3,7 @@ import {
     SetAlwaysOnTop,
     SetCloseToTray,
     SetLanguage,
+    SetNotificationsEnabled,
     SetSingleKeyShortcuts,
     SetSoundEnabled,
     SetTheme,
@@ -277,6 +278,14 @@ export default function SettingsPanel({t, settings, open, onOpenChange, onApplie
                             onChange={(e) => SetSoundEnabled(e.target.checked).then(apply)}
                         />
                         {t.sound}
+                    </label>
+                    <label className="toggle" title={t.notificationsTitle}>
+                        <input
+                            type="checkbox"
+                            checked={settings.notificationsEnabled}
+                            onChange={(e) => SetNotificationsEnabled(e.target.checked).then(apply)}
+                        />
+                        {t.notifications}
                     </label>
                     <label className="toggle" title={t.closeToTrayTitle}>
                         <input

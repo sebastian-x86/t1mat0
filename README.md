@@ -146,6 +146,7 @@ die Zeile in jeder Sprache ins Fenster.
 | Kurzbefehle anzeigen | Button `?` | — |
 | Always on Top | Checkbox (Zahnrad-Menü) | Checkbox |
 | Sound an/aus | Checkbox (Zahnrad-Menü) | Checkbox |
+| Benachrichtigungen an/aus | Checkbox (Zahnrad-Menü) | — |
 | Sprache | Flaggen-Auswahl (Zahnrad-Menü) | — |
 | Design (hell/dunkel) | Symbol-Auswahl (Zahnrad-Menü) | — |
 | Schließen in den Infobereich | Checkbox (Zahnrad-Menü) | — |
@@ -280,6 +281,10 @@ Dazu gibt es Knöpfe direkt in der Benachrichtigung:
 `Pause starten` und `Weiterarbeiten` starten den Timer nur, wenn er nicht
 ohnehin schon läuft (`autoStartNext`). Ein Klick auf die Benachrichtigung selbst
 holt das Fenster nach vorn.
+
+Abschalten lässt sich das im Zahnrad-Menü über **Benachrichtigungen**; die
+Wahl landet als `notificationsEnabled` in der `settings.json`. Der Chime hängt
+an einer eigenen Einstellung, beides ist unabhängig voneinander.
 
 Unter Windows liefert Wails die Toast-Registrierung samt Symbol mit; auf
 Plattformen ohne Unterstützung für Knöpfe fällt die Benachrichtigung
@@ -420,8 +425,8 @@ Unter WSL2 daher am besten die Windows-Exe testen (siehe
 ## Einstellungen
 
 Die Einstellungen klappen aus dem Zahnrad unten rechts nach oben auf: Dauern,
-Long-Break-Intervall, Sprache, Design, Always on Top, Sound, das Verhalten
-beim Schließen und die Ein-Tasten-Kürzel.
+Long-Break-Intervall, Sprache, Design, Always on Top, Sound,
+Benachrichtigungen, das Verhalten beim Schließen und die Ein-Tasten-Kürzel.
 Die Restzeit lässt sich zusätzlich direkt im Uhrenfeld überschreiben (siehe
 [Zeit direkt ändern](#zeit-direkt-ändern)).
 
@@ -437,6 +442,7 @@ neben der Binary.
 | `longBreakEvery` | 4 | Nach wie vielen Arbeitsphasen die lange Pause kommt |
 | `language` | "auto" | Sprache: `auto` (vom System), `de` oder `en` |
 | `theme` | "auto" | Design: `auto` (vom System), `light` oder `dark` |
+| `notificationsEnabled` | true | Benachrichtigung beim Phasenende |
 | `closeToTray` | true | Schließen versteckt das Fenster im Infobereich, statt zu beenden |
 | `alwaysOnTop` | false | Fenster immer im Vordergrund |
 | `soundEnabled` | true | Chime bei Phasenwechsel |
