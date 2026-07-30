@@ -26,6 +26,7 @@ export namespace timer {
 	    autoStartNext: boolean;
 	    language: string;
 	    theme: string;
+	    closeToTray: boolean;
 	    singleKeyShortcuts: boolean;
 	
 	    static createFrom(source: any = {}) {
@@ -43,6 +44,7 @@ export namespace timer {
 	        this.autoStartNext = source["autoStartNext"];
 	        this.language = source["language"];
 	        this.theme = source["theme"];
+	        this.closeToTray = source["closeToTray"];
 	        this.singleKeyShortcuts = source["singleKeyShortcuts"];
 	    }
 	}

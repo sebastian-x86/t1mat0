@@ -148,6 +148,7 @@ die Zeile in jeder Sprache ins Fenster.
 | Sound an/aus | Checkbox (Zahnrad-Menü) | Checkbox |
 | Sprache | Flaggen-Auswahl (Zahnrad-Menü) | — |
 | Design (hell/dunkel) | Symbol-Auswahl (Zahnrad-Menü) | — |
+| Schließen in den Infobereich | Checkbox (Zahnrad-Menü) | — |
 | Fenster ein-/ausblenden | — | `Show / Hide` |
 | Beenden | — | `Quit` |
 
@@ -386,7 +387,7 @@ self-contained, z. B. für einen USB-Stick.
 | Always on Top | ✅ | ✅ | ✅ | ⚠️ compositor-abhängig |
 | Sound bei Phasenwechsel | ✅ | ✅ | ✅ | ✅ (PulseAudio) |
 | Tray-Icon mit Menü | ✅ | ✅ | ❌ | ❌ |
-| Schließen minimiert in Tray | ✅ | ✅ | ❌ (beendet) | ❌ (beendet) |
+| Schließen minimiert in Tray | ✅ (abschaltbar) | ✅ (abschaltbar) | ❌ (beendet) | ❌ (beendet) |
 
 Linux ist bewusst nur Entwicklungsplattform: Das Tray-Menü ist über Build-Tags
 auf Windows/macOS beschränkt (`internal/tray/tray_desktop.go` vs. `internal/tray/tray_stub.go`).
@@ -396,8 +397,8 @@ Unter WSL2 daher am besten die Windows-Exe testen (siehe
 ## Einstellungen
 
 Die Einstellungen klappen aus dem Zahnrad unten rechts nach oben auf: Dauern,
-Long-Break-Intervall, Sprache, Design, Always on Top, Sound und die
-Ein-Tasten-Kürzel.
+Long-Break-Intervall, Sprache, Design, Always on Top, Sound, das Verhalten
+beim Schließen und die Ein-Tasten-Kürzel.
 Die Restzeit lässt sich zusätzlich direkt im Uhrenfeld überschreiben (siehe
 [Zeit direkt ändern](#zeit-direkt-ändern)).
 
@@ -413,6 +414,7 @@ neben der Binary.
 | `longBreakEvery` | 4 | Nach wie vielen Arbeitsphasen die lange Pause kommt |
 | `language` | "auto" | Sprache: `auto` (vom System), `de` oder `en` |
 | `theme` | "auto" | Design: `auto` (vom System), `light` oder `dark` |
+| `closeToTray` | true | Schließen versteckt das Fenster im Infobereich, statt zu beenden |
 | `alwaysOnTop` | false | Fenster immer im Vordergrund |
 | `soundEnabled` | true | Chime bei Phasenwechsel |
 | `singleKeyShortcuts` | true | Ein-Tasten-Kürzel (`Space`, `R`, `N`, …) aktiv |

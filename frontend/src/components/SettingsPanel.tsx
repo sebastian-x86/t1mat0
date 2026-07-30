@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from "react";
 import {
     SetAlwaysOnTop,
+    SetCloseToTray,
     SetLanguage,
     SetSingleKeyShortcuts,
     SetSoundEnabled,
@@ -276,6 +277,14 @@ export default function SettingsPanel({t, settings, open, onOpenChange, onApplie
                             onChange={(e) => SetSoundEnabled(e.target.checked).then(apply)}
                         />
                         {t.sound}
+                    </label>
+                    <label className="toggle" title={t.closeToTrayTitle}>
+                        <input
+                            type="checkbox"
+                            checked={settings.closeToTray}
+                            onChange={(e) => SetCloseToTray(e.target.checked).then(apply)}
+                        />
+                        {t.closeToTray}
                     </label>
                     <label className="toggle" title={t.singleKeyTitle}>
                         <input
