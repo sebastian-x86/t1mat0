@@ -1,7 +1,15 @@
-import {useCallback, useEffect, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {EventsOn} from "../wailsjs/runtime/runtime";
-import {GetState, GetVersion, Reset, Skip, Toggle} from "../wailsjs/go/main/App";
-import {timer} from "../wailsjs/go/models";
+import {
+    GetReport,
+    GetState,
+    GetVersion,
+    Reset,
+    SetHistoryConsent,
+    Skip,
+    Toggle,
+} from "../wailsjs/go/main/App";
+import {history, timer} from "../wailsjs/go/models";
 import {texts} from "./i18n";
 import {playChime, unlockAudio} from "./sound";
 import {useClockEdit} from "./hooks/useClockEdit";
@@ -11,7 +19,9 @@ import {applyTheme, watchSystemTheme} from "./lib/theme";
 import ActionBar from "./components/ActionBar";
 import BeachScene from "./components/BeachScene";
 import Clock from "./components/Clock";
+import ConfirmDialog from "./components/ConfirmDialog";
 import HarvestHud from "./components/HarvestHud";
+import ReportView, {type ReportData} from "./components/ReportView";
 import SettingsPanel from "./components/SettingsPanel";
 import ShortcutHelp from "./components/ShortcutHelp";
 import TomatoDrip from "./components/TomatoDrip";
@@ -26,6 +36,10 @@ function App() {
     const [squeezing, setSqueezing] = useState(false);
     const [appVersion, setAppVersion] = useState("dev");
     const [error, setError] = useState("");
+    const [view, setView] = useState<"timer" | "report">("timer");
+    const [report, setReport] = useState<ReportData | null>(null);
+    const [historyConsentOpen, setHistoryConsentOpen] = useState(false);
+    const historyPromptShown = useRef(false);
 
     const applyState = useCallback((next: timer.State) => setState(next), []);
 
@@ -69,6 +83,14 @@ function App() {
 
     const clock = useClockEdit(state?.remainingSeconds, applyState, setError);
 
+    useEffect(() => {
+        if (!state || state.settings.historyPrompted || historyPromptShown.current) {
+            return;
+        }
+        historyPromptShown.current = true;
+        setHistoryConsentOpen(true);
+    }, [state, applyState]);
+
     const toggleTimer = useCallback(() => {
         Toggle().then((s) => applyState(timer.State.createFrom(s)));
     }, [applyState]);
@@ -93,11 +115,27 @@ function App() {
     }, [applyState, state?.phase]);
 
     useShortcuts({
-        toggleTimer,
-        resetTimer,
-        skip,
+        toggleTimer: () => {
+            if (view === "timer") {
+                toggleTimer();
+            }
+        },
+        resetTimer: () => {
+            if (view === "timer") {
+                resetTimer();
+            }
+        },
+        skip: () => {
+            if (view === "timer") {
+                skip();
+            }
+        },
         startClockEdit: clock.start,
-        toggleSettings: () => setSettingsOpen((open) => !open),
+        toggleSettings: () => {
+            if (view === "timer") {
+                setSettingsOpen((open) => !open);
+            }
+        },
         toggleHelp: () => setHelpOpen((open) => !open),
         closeHelp: () => setHelpOpen(false),
         editing: clock.draft !== null,
@@ -110,6 +148,36 @@ function App() {
         }
         return 1 - state.remainingSeconds / state.totalSeconds;
     }, [state]);
+
+    const openReport = useCallback(() => {
+        GetReport().then((data) => {
+            setReport(history.Report.createFrom(data) as unknown as ReportData);
+            setView("report");
+        });
+    }, []);
+
+    const refreshReport = useCallback(() => {
+        GetReport().then((data) => {
+            setReport(history.Report.createFrom(data) as unknown as ReportData);
+        });
+    }, []);
+
+    const closeReport = useCallback(() => {
+        setView("timer");
+    }, []);
+
+    useEffect(() => {
+        if (view !== "report") {
+            return;
+        }
+        const onKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                closeReport();
+            }
+        };
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [view, closeReport]);
 
     if (!state) {
         const fallback = texts(navigator.language.toLowerCase().startsWith("de") ? "de" : "en");
@@ -136,14 +204,31 @@ function App() {
               ? t.longBreakTitle
               : t.shortBreakTitle;
 
+    if (view === "report") {
+        return (
+            <div className={`app app--${state.phase} app--report`}>
+                <ReportView
+                    t={t}
+                    report={report}
+                    settings={state.settings}
+                    onApplied={applyState}
+                    onRefresh={refreshReport}
+                    onClose={closeReport}
+                />
+            </div>
+        );
+    }
+
     return (
         <div className={`app app--${state.phase}`}>
             <header className="app__header">
                 <HarvestHud
                     language={state.language}
                     tomatoes={state.harvest.tomatoes}
+                    total={state.harvest.total}
                     streak={state.harvest.streak}
                     bestStreak={state.harvest.bestStreak}
+                    onOpenReport={openReport}
                 />
 
                 <span className="app__phase" title={phaseTitle}>
@@ -219,6 +304,22 @@ function App() {
                 <p className="sr-only" role="alert">
                     {error}
                 </p>
+            )}
+            {historyConsentOpen && (
+                <ConfirmDialog
+                    title={t.historyConsentTitle}
+                    body={<p>{t.historyConsentPrompt}</p>}
+                    confirmLabel={t.historyConsentEnable}
+                    cancelLabel={t.historyConsentDecline}
+                    onCancel={() => {
+                        setHistoryConsentOpen(false);
+                        SetHistoryConsent(false).then((s) => applyState(timer.State.createFrom(s)));
+                    }}
+                    onConfirm={() => {
+                        setHistoryConsentOpen(false);
+                        SetHistoryConsent(true).then((s) => applyState(timer.State.createFrom(s)));
+                    }}
+                />
             )}
         </div>
     );

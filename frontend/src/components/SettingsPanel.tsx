@@ -1,7 +1,10 @@
 import {useEffect, useRef, useState} from "react";
 import {
+    DeleteHistoryData,
+    OpenDataDirectory,
     SetAlwaysOnTop,
     SetCloseToTray,
+    SetHistoryEnabled,
     SetLanguage,
     SetNotificationsEnabled,
     SetSingleKeyShortcuts,
@@ -14,6 +17,7 @@ import {parseDuration, stepDuration, toDuration} from "../duration";
 import {useWheel} from "../hooks/useWheel";
 import {wheelStep} from "../lib/clockPointer";
 import type {Strings} from "../i18n";
+import ConfirmDialog from "./ConfirmDialog";
 import LanguagePicker from "./LanguagePicker";
 import ThemePicker from "./ThemePicker";
 import "./SettingsPanel.css";
@@ -64,6 +68,7 @@ export default function SettingsPanel({t, settings, open, onOpenChange, onApplie
     const [form, setForm] = useState<SettingsForm>(() => toForm(settings));
     const [storedKey, setStoredKey] = useState(() => formKey(settings));
     const [error, setError] = useState("");
+    const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
 
     // The clock can change a duration too, so the draft follows the stored
     // values whenever they really changed instead of on every tick.
@@ -152,15 +157,14 @@ export default function SettingsPanel({t, settings, open, onOpenChange, onApplie
             return;
         }
 
-        const next = timer.Settings.createFrom({
-            ...settings,
-            workSeconds: durations.workSeconds as number,
-            shortBreakSeconds: durations.shortBreakSeconds as number,
-            longBreakSeconds: durations.longBreakSeconds as number,
-            longBreakEvery: Number(form.longBreakEvery),
-        });
-
         try {
+            const next = timer.Settings.createFrom({
+                ...settings,
+                workSeconds: durations.workSeconds as number,
+                shortBreakSeconds: durations.shortBreakSeconds as number,
+                longBreakSeconds: durations.longBreakSeconds as number,
+                longBreakEvery: Number(form.longBreakEvery),
+            });
             setError("");
             onApplied(timer.State.createFrom(await UpdateSettings(next)));
         } catch (err) {
@@ -287,6 +291,30 @@ export default function SettingsPanel({t, settings, open, onOpenChange, onApplie
                         />
                         {t.notifications}
                     </label>
+                    <label className="toggle" title={t.historyEnabledTitle}>
+                        <input
+                            type="checkbox"
+                            checked={settings.historyEnabled}
+                            onChange={(e) => SetHistoryEnabled(e.target.checked).then(apply)}
+                        />
+                        {t.historyEnabled}
+                    </label>
+                    <p className="settings__hint">{t.historyHint}</p>
+                    <button
+                        className="btn"
+                        title={t.historyDeleteTitle}
+                        onClick={() => setConfirmDeleteOpen(true)}
+                    >
+                        {t.historyDelete}
+                    </button>
+                    <button
+                        className="btn"
+                        title={t.openDataDirTitle}
+                        onClick={() => OpenDataDirectory().catch((err) => setError(String(err)))}
+                    >
+                        {t.openDataDir}
+                    </button>
+
                     <label className="toggle" title={t.closeToTrayTitle}>
                         <input
                             type="checkbox"
@@ -310,6 +338,19 @@ export default function SettingsPanel({t, settings, open, onOpenChange, onApplie
                         </p>
                     )}
                 </div>
+            )}
+            {confirmDeleteOpen && (
+                <ConfirmDialog
+                    title={t.historyDeleteTitle}
+                    body={<p>{t.historyDeleteConfirm}</p>}
+                    confirmLabel={t.historyDelete}
+                    cancelLabel={t.historyConsentDecline}
+                    onCancel={() => setConfirmDeleteOpen(false)}
+                    onConfirm={() => {
+                        setConfirmDeleteOpen(false);
+                        DeleteHistoryData().then(apply);
+                    }}
+                />
             )}
         </div>
     );

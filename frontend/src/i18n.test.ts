@@ -29,7 +29,7 @@ describe("texts", () => {
     it("fills the placeholders of the templated strings", () => {
         expect(texts("de").resetTitle(" (R)")).toContain("(R)");
         expect(texts("en").progressValue(50, "12:30")).toContain("12:30");
-        expect(texts("de").harvestTitle(3)).toContain("3");
+        expect(texts("de").harvestTitle(3, 9)).toContain("9");
         expect(texts("de").streakTitle(2, 5)).toContain("5");
     });
 });

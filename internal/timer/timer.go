@@ -75,6 +75,16 @@ type Settings struct {
 	// WCAG 2.1.4 requires them to be switchable off, because speech input
 	// and screen readers trigger bare character keys unintentionally.
 	SingleKeyShortcuts bool `json:"singleKeyShortcuts"`
+	// HistoryEnabled controls whether completed phases are logged to history.json.
+	HistoryEnabled bool `json:"historyEnabled"`
+	// HistoryRetentionDays controls how long raw phase events are kept.
+	HistoryRetentionDays int `json:"historyRetentionDays"`
+	// HistoryPrompted marks whether the first-run consent was already shown.
+	HistoryPrompted bool `json:"historyPrompted"`
+	// WorkHoursEnabled toggles workload reference metrics in reports.
+	WorkHoursEnabled bool `json:"workHoursEnabled"`
+	// WorkHours stores workday windows and fixed pauses per weekday.
+	WorkHours WorkHours `json:"workHours"`
 }
 
 // legacySettings mirrors the pre-seconds settings file format.
@@ -134,6 +144,11 @@ func DefaultSettings() Settings {
 		CloseToTray:          true,
 		NotificationsEnabled: true,
 		SingleKeyShortcuts:   true,
+		HistoryEnabled:       false,
+		HistoryRetentionDays: 30,
+		HistoryPrompted:      false,
+		WorkHoursEnabled:     false,
+		WorkHours:            DefaultWorkHours(),
 	}
 }
 
@@ -157,6 +172,17 @@ func (s Settings) Validate() error {
 	}
 	if s.LongBreakEvery > 600 {
 		return fmt.Errorf("longBreakEvery must be at most 600, got %d", s.LongBreakEvery)
+	}
+	if s.HistoryRetentionDays < 1 {
+		return fmt.Errorf("historyRetentionDays must be at least 1, got %d", s.HistoryRetentionDays)
+	}
+	if s.HistoryRetentionDays > 3650 {
+		return fmt.Errorf("historyRetentionDays must be at most 3650, got %d", s.HistoryRetentionDays)
+	}
+	if s.WorkHoursEnabled {
+		if err := validateWorkHours(s.WorkHours); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -355,6 +381,7 @@ func (t *Timer) Tick() TickResult {
 	harvested := false
 	if finished == PhaseWork {
 		t.harvest.Tomatoes++
+		t.harvest.Total++
 		t.harvest.Streak++
 		if t.harvest.Streak > t.harvest.BestStreak {
 			t.harvest.BestStreak = t.harvest.Streak
@@ -473,7 +500,24 @@ func (t *Timer) SetCloseToTray(enabled bool) State {
 func (t *Timer) SetHarvest(harvest Harvest) State {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+	if harvest.Total < harvest.Tomatoes {
+		harvest.Total = harvest.Tomatoes
+	}
 	t.harvest = harvest
+	return t.snapshotLocked()
+}
+
+// SetHarvestDay resets the daily tomato counter when the local day changed.
+func (t *Timer) SetHarvestDay(day string) State {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if day == "" {
+		return t.snapshotLocked()
+	}
+	if t.harvest.Day != day {
+		t.harvest.Day = day
+		t.harvest.Tomatoes = 0
+	}
 	return t.snapshotLocked()
 }
 
@@ -482,6 +526,41 @@ func (t *Timer) SetSingleKeyShortcuts(enabled bool) State {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	t.settings.SingleKeyShortcuts = enabled
+	return t.snapshotLocked()
+}
+
+// SetHistoryEnabled stores whether phase history is persisted.
+func (t *Timer) SetHistoryEnabled(enabled bool) State {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.settings.HistoryEnabled = enabled
+	return t.snapshotLocked()
+}
+
+// SetHistoryPrompted stores whether the initial consent dialog was shown.
+func (t *Timer) SetHistoryPrompted(prompted bool) State {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.settings.HistoryPrompted = prompted
+	return t.snapshotLocked()
+}
+
+// SetHistoryRetentionDays stores the raw event retention in days.
+func (t *Timer) SetHistoryRetentionDays(days int) (State, error) {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	if days < 1 || days > 3650 {
+		return t.snapshotLocked(), fmt.Errorf("%w: historyRetentionDays must be between 1 and 3650, got %d", ErrInvalidSettings, days)
+	}
+	t.settings.HistoryRetentionDays = days
+	return t.snapshotLocked(), nil
+}
+
+// SetWorkHoursEnabled stores whether workload reference metrics are enabled.
+func (t *Timer) SetWorkHoursEnabled(enabled bool) State {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	t.settings.WorkHoursEnabled = enabled
 	return t.snapshotLocked()
 }
 

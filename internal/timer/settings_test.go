@@ -2,6 +2,7 @@ package timer
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 
 	"t1m/internal/i18n"
@@ -47,7 +48,7 @@ func TestNewTimerFallsBackToDefaultsOnInvalidSettings(t *testing.T) {
 	broken.WorkSeconds = 0
 
 	state := NewTimer(broken).Snapshot()
-	if state.Settings != DefaultSettings() {
+	if !reflect.DeepEqual(state.Settings, DefaultSettings()) {
 		t.Fatalf("expected default settings, got %+v", state.Settings)
 	}
 }
@@ -208,14 +209,86 @@ func TestTogglesStorePreferences(t *testing.T) {
 	if got := timer.SetSingleKeyShortcuts(false).Settings.SingleKeyShortcuts; got {
 		t.Fatal("singleKeyShortcuts should be false")
 	}
+	if got := timer.SetHistoryEnabled(true).Settings.HistoryEnabled; !got {
+		t.Fatal("historyEnabled should be true")
+	}
+	if got := timer.SetHistoryPrompted(true).Settings.HistoryPrompted; !got {
+		t.Fatal("historyPrompted should be true")
+	}
 }
 
 func TestSetHarvestRestoresPersistedCounts(t *testing.T) {
 	timer := NewTimer(testSettings())
-	want := Harvest{Tomatoes: 5, Streak: 2, BestStreak: 9}
+	want := Harvest{Tomatoes: 5, Total: 9, Day: "2026-07-30", Streak: 2, BestStreak: 9}
 
 	if got := timer.SetHarvest(want).Harvest; got != want {
 		t.Fatalf("expected %+v, got %+v", want, got)
+	}
+}
+
+func TestSetHarvestDayResetsDailyTomatoes(t *testing.T) {
+	timer := NewTimer(testSettings())
+	timer.SetHarvest(Harvest{Tomatoes: 4, Total: 10, Day: "2026-07-29"})
+
+	state := timer.SetHarvestDay("2026-07-30")
+	if state.Harvest.Tomatoes != 0 || state.Harvest.Total != 10 || state.Harvest.Day != "2026-07-30" {
+		t.Fatalf("unexpected harvest after day roll: %+v", state.Harvest)
+	}
+}
+
+func TestValidateRejectsBrokenWorkHoursWhenEnabled(t *testing.T) {
+	settings := DefaultSettings()
+	settings.WorkHoursEnabled = true
+	settings.WorkHours.Days[1].Enabled = true
+	settings.WorkHours.Days[1].End = "08:00"
+	if err := settings.Validate(); err == nil {
+		t.Fatal("expected work hours validation error")
+	}
+}
+
+// A fresh install must not invent work hours. Every weekday stays off until the
+// user adds one, so reports never compare against a schedule nobody entered.
+func TestDefaultWorkHoursStartEmpty(t *testing.T) {
+	settings := DefaultSettings()
+	if settings.WorkHoursEnabled {
+		t.Fatal("work hours must be off by default")
+	}
+	if len(settings.WorkHours.Days) != 7 {
+		t.Fatalf("expected 7 weekdays, got %d", len(settings.WorkHours.Days))
+	}
+	for i, day := range settings.WorkHours.Days {
+		if day.Enabled {
+			t.Fatalf("weekday %d must be disabled by default", i)
+		}
+		if len(day.Breaks) != 0 {
+			t.Fatalf("weekday %d must start without breaks", i)
+		}
+	}
+	if err := settings.Validate(); err != nil {
+		t.Fatalf("default settings must validate: %v", err)
+	}
+}
+
+// Turning the frame on without any workday stays valid: it simply produces no
+// coverage numbers instead of an error the user cannot act on.
+func TestEmptyWorkHoursValidateWhenEnabled(t *testing.T) {
+	settings := DefaultSettings()
+	settings.WorkHoursEnabled = true
+	if err := settings.Validate(); err != nil {
+		t.Fatalf("empty schedule must validate: %v", err)
+	}
+}
+
+// Breaks are only allowed inside the workday they belong to.
+func TestValidateRejectsBreakOutsideWorkHours(t *testing.T) {
+	settings := DefaultSettings()
+	settings.WorkHoursEnabled = true
+	settings.WorkHours.Days[1].Enabled = true
+	settings.WorkHours.Days[1].Start = "08:00"
+	settings.WorkHours.Days[1].End = "16:30"
+	settings.WorkHours.Days[1].Breaks = []FixedPause{{Start: "17:00", DurationMinutes: 30}}
+	if err := settings.Validate(); err == nil {
+		t.Fatal("expected break outside work hours to fail")
 	}
 }
 
@@ -238,5 +311,37 @@ func TestStartRefillsAnExpiredPhase(t *testing.T) {
 	}
 	if state.Status != StatusRunning {
 		t.Fatalf("expected a running timer, got %q", state.Status)
+	}
+}
+
+func TestSetHistoryRetentionDaysRejectsOutOfRange(t *testing.T) {
+	timer := NewTimer(testSettings())
+
+	state, err := timer.SetHistoryRetentionDays(90)
+	if err != nil {
+		t.Fatalf("90 days should be accepted: %v", err)
+	}
+	if state.Settings.HistoryRetentionDays != 90 {
+		t.Fatalf("expected 90, got %d", state.Settings.HistoryRetentionDays)
+	}
+
+	for _, days := range []int{0, -1, 3651} {
+		if _, err := timer.SetHistoryRetentionDays(days); !errors.Is(err, ErrInvalidSettings) {
+			t.Fatalf("%d days should be rejected, got %v", days, err)
+		}
+	}
+	if got := timer.Snapshot().Settings.HistoryRetentionDays; got != 90 {
+		t.Fatalf("a rejected value must not change the setting, got %d", got)
+	}
+}
+
+func TestSetWorkHoursEnabledToggles(t *testing.T) {
+	timer := NewTimer(testSettings())
+
+	if got := timer.SetWorkHoursEnabled(true).Settings.WorkHoursEnabled; !got {
+		t.Fatal("workHoursEnabled should be true")
+	}
+	if got := timer.SetWorkHoursEnabled(false).Settings.WorkHoursEnabled; got {
+		t.Fatal("workHoursEnabled should be false")
 	}
 }

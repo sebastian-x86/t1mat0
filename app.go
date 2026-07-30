@@ -2,11 +2,18 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"net/url"
+	"os"
+	"path/filepath"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
 
+	"t1m/internal/history"
 	"t1m/internal/i18n"
 	"t1m/internal/store"
 	"t1m/internal/timer"
@@ -29,16 +36,39 @@ type App struct {
 	windowVisible  bool
 	quitting       bool
 	notifyDisabled bool
+	historyLog     history.Log
+	historyTracker *history.Tracker
+	currentDay     string
 }
 
 // NewApp creates the application with persisted settings applied.
 func NewApp() *App {
-	machine := timer.NewTimer(store.LoadSettings())
-	machine.SetHarvest(store.LoadHarvest())
+	now := time.Now()
+	settings := store.LoadSettings()
+	machine := timer.NewTimer(settings)
+	harvest := store.LoadHarvest()
+	if harvest.Total < harvest.Tomatoes {
+		harvest.Total = harvest.Tomatoes
+	}
+	today := history.LocalDay(now)
+	// Legacy harvest files had no explicit day; keep the lifetime counter and
+	// start the day counter fresh so old totals never disappear.
+	if harvest.Day == "" {
+		harvest.Day = today
+		harvest.Tomatoes = 0
+	}
+	if harvest.Day != today {
+		harvest.Day = today
+		harvest.Tomatoes = 0
+	}
+	machine.SetHarvest(harvest)
 	return &App{
-		timer:         machine,
-		done:          make(chan struct{}),
-		windowVisible: true,
+		timer:          machine,
+		done:           make(chan struct{}),
+		windowVisible:  true,
+		historyLog:     store.LoadHistory(),
+		historyTracker: history.NewTracker(time.Now),
+		currentDay:     today,
 	}
 }
 
@@ -51,6 +81,8 @@ func (a *App) startup(ctx context.Context) {
 	}
 
 	state := a.timer.Snapshot()
+	state = a.rolloverDayIfNeeded(state)
+	_ = store.SaveHarvest(state.Harvest)
 	if !a.notifyDisabled {
 		wailsRuntime.OnNotificationResponse(ctx, a.handleNotificationResponse)
 		a.registerNotificationCategories(state.Language)
@@ -76,6 +108,10 @@ func (a *App) shutdown(ctx context.Context) {
 	tray.Stop()
 	// A shutdown before startup has no runtime context; the settings still
 	// have to reach the disk.
+	a.finishTrackedPhase(history.OutcomeAbandoned)
+	if a.timer.Snapshot().Settings.HistoryEnabled {
+		a.compactAndSaveHistory(a.timer.Snapshot().Settings.HistoryRetentionDays, false)
+	}
 	if ctx != nil {
 		wailsRuntime.CleanupNotifications(ctx)
 	}
@@ -105,7 +141,12 @@ func (a *App) runLoop() {
 			return
 		case <-a.ticker.C:
 			result := a.timer.Tick()
+			result.State = a.rolloverDayIfNeeded(result.State)
 			if result.PhaseChanged {
+				a.finishTrackedPhase(history.OutcomeCompleted)
+				if result.State.Status == timer.StatusRunning {
+					a.startOrResumeTracking(result.State, false)
+				}
 				a.announcePhase(result.State, result.FinishedPhase)
 			}
 			if result.Harvested {
@@ -160,9 +201,20 @@ func (a *App) GetState() timer.State {
 	return a.timer.Snapshot()
 }
 
+// GetReport returns daily analysis metrics and chart data.
+func (a *App) GetReport() history.Report {
+	state := a.timer.Snapshot()
+	a.mu.Lock()
+	log := a.historyLog
+	a.mu.Unlock()
+	return history.BuildReport(log, time.Now(), toHistorySchedule(state.Settings), state.Settings.HistoryEnabled)
+}
+
 // Start starts or resumes the timer.
 func (a *App) Start() timer.State {
 	state := a.timer.Start()
+	state = a.rolloverDayIfNeeded(state)
+	a.startOrResumeTracking(state, false)
 	a.publish(state)
 	return state
 }
@@ -170,19 +222,28 @@ func (a *App) Start() timer.State {
 // Pause pauses the timer.
 func (a *App) Pause() timer.State {
 	state := a.timer.Pause()
+	a.pauseTracking()
 	a.publish(state)
 	return state
 }
 
 // Toggle switches between running and paused.
 func (a *App) Toggle() timer.State {
+	wasRunning := a.timer.Snapshot().Status == timer.StatusRunning
 	state := a.timer.Toggle()
+	state = a.rolloverDayIfNeeded(state)
+	if wasRunning {
+		a.pauseTracking()
+	} else {
+		a.startOrResumeTracking(state, false)
+	}
 	a.publish(state)
 	return state
 }
 
 // Reset returns the timer to a fresh work phase.
 func (a *App) Reset() timer.State {
+	a.finishTrackedPhase(history.OutcomeReset)
 	state := a.timer.Reset()
 	_ = store.SaveHarvest(state.Harvest)
 	a.publish(state)
@@ -192,6 +253,10 @@ func (a *App) Reset() timer.State {
 // Skip jumps to the next phase.
 func (a *App) Skip() timer.State {
 	state, finished := a.timer.Skip()
+	a.finishTrackedPhase(history.OutcomeSkipped)
+	if state.Status == timer.StatusRunning {
+		a.startOrResumeTracking(state, false)
+	}
 	a.announcePhase(state, finished)
 	// A skipped work phase breaks the streak; persist that right away.
 	if finished == timer.PhaseWork {
@@ -341,6 +406,226 @@ func (a *App) SetSingleKeyShortcuts(enabled bool) timer.State {
 	_ = store.SaveSettings(state.Settings)
 	a.publish(state)
 	return state
+}
+
+// SetHistoryEnabled toggles writing phase history to disk.
+func (a *App) SetHistoryEnabled(enabled bool) timer.State {
+	state := a.timer.SetHistoryEnabled(enabled)
+	if enabled {
+		state = a.rolloverDayIfNeeded(state)
+		a.startOrResumeTracking(state, true)
+	} else {
+		a.resetTracking()
+	}
+	_ = store.SaveSettings(state.Settings)
+	a.publish(state)
+	return state
+}
+
+// SetHistoryConsent stores the first-run decision and optional enable flag.
+func (a *App) SetHistoryConsent(enabled bool) timer.State {
+	a.timer.SetHistoryEnabled(enabled)
+	state := a.timer.SetHistoryPrompted(true)
+	if enabled {
+		state = a.rolloverDayIfNeeded(state)
+		a.startOrResumeTracking(state, true)
+	} else {
+		a.resetTracking()
+	}
+	_ = store.SaveSettings(state.Settings)
+	a.publish(state)
+	return state
+}
+
+// DeleteHistoryData removes history.json from disk.
+func (a *App) DeleteHistoryData() timer.State {
+	_ = store.DeleteHistory()
+	a.mu.Lock()
+	a.historyLog = history.EmptyLog()
+	a.mu.Unlock()
+	state := a.timer.Snapshot()
+	a.publish(state)
+	return state
+}
+
+// ExportHistory writes raw phase history as csv or json.
+func (a *App) ExportHistory(format string) error {
+	if a.ctx == nil {
+		return fmt.Errorf("runtime context missing")
+	}
+	if !store.HasHistory() {
+		return fmt.Errorf("no history to export")
+	}
+
+	base := "t1mat0-verlauf-" + history.LocalDay(time.Now())
+	path, err := store.HistoryPath()
+	if err != nil {
+		return err
+	}
+	options := wailsRuntime.SaveDialogOptions{
+		Title:            "Export history",
+		DefaultDirectory: filepath.Dir(path),
+	}
+
+	var content []byte
+	switch format {
+	case "json":
+		options.DefaultFilename = base + ".json"
+		options.Filters = []wailsRuntime.FileFilter{{DisplayName: "JSON", Pattern: "*.json"}}
+		content, err = os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+	default:
+		options.DefaultFilename = base + ".csv"
+		options.Filters = []wailsRuntime.FileFilter{{DisplayName: "CSV", Pattern: "*.csv"}}
+		a.mu.Lock()
+		log := a.historyLog
+		a.mu.Unlock()
+		content, err = history.CSV(log)
+		if err != nil {
+			return err
+		}
+	}
+
+	target, err := wailsRuntime.SaveFileDialog(a.ctx, options)
+	if err != nil || target == "" {
+		return err
+	}
+	return os.WriteFile(target, content, 0o644)
+}
+
+// OpenDataDirectory opens the folder with settings and history files.
+func (a *App) OpenDataDirectory() error {
+	if a.ctx == nil {
+		return fmt.Errorf("runtime context missing")
+	}
+	path, err := store.SettingsPath()
+	if err != nil {
+		return err
+	}
+	wailsRuntime.BrowserOpenURL(a.ctx, (&url.URL{Scheme: "file", Path: filepath.Dir(path)}).String())
+	return nil
+}
+
+func (a *App) rolloverDayIfNeeded(state timer.State) timer.State {
+	today := history.LocalDay(time.Now())
+	if today == a.currentDay {
+		return state
+	}
+	a.currentDay = today
+	state = a.timer.SetHarvestDay(today)
+	_ = store.SaveHarvest(state.Harvest)
+	if state.Settings.HistoryEnabled {
+		a.compactAndSaveHistory(state.Settings.HistoryRetentionDays, false)
+	}
+	return state
+}
+
+func (a *App) startOrResumeTracking(state timer.State, forceStart bool) {
+	if !state.Settings.HistoryEnabled {
+		return
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.historyTracker.Active() && !forceStart {
+		a.historyTracker.Resume()
+		return
+	}
+	a.historyTracker.StartPhase(string(state.Phase), state.TotalSeconds)
+}
+
+func (a *App) pauseTracking() {
+	state := a.timer.Snapshot()
+	if !state.Settings.HistoryEnabled {
+		return
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.historyTracker.Pause()
+}
+
+func (a *App) finishTrackedPhase(outcome history.Outcome) {
+	state := a.timer.Snapshot()
+	if !state.Settings.HistoryEnabled {
+		return
+	}
+	a.mu.Lock()
+	event, ok := a.historyTracker.EndPhase(outcome)
+	if ok {
+		a.historyLog.Phases = append(a.historyLog.Phases, event)
+		a.historyLog = history.Compact(a.historyLog, time.Now(), state.Settings.HistoryRetentionDays)
+	}
+	log := a.historyLog
+	a.mu.Unlock()
+	if ok {
+		if err := store.SaveHistory(log); err != nil && a.ctx != nil {
+			wailsRuntime.LogWarningf(a.ctx, "failed to persist history: %v", err)
+		}
+	}
+}
+
+func (a *App) compactAndSaveHistory(retentionDays int, allowCreate bool) {
+	if !allowCreate && !store.HasHistory() {
+		return
+	}
+	a.mu.Lock()
+	a.historyLog = history.Compact(a.historyLog, time.Now(), retentionDays)
+	log := a.historyLog
+	a.mu.Unlock()
+	if err := store.SaveHistory(log); err != nil && a.ctx != nil {
+		wailsRuntime.LogWarningf(a.ctx, "failed to compact history: %v", err)
+	}
+}
+
+func (a *App) resetTracking() {
+	a.mu.Lock()
+	a.historyTracker = history.NewTracker(time.Now)
+	a.mu.Unlock()
+}
+
+func toHistorySchedule(settings timer.Settings) history.Schedule {
+	out := history.Schedule{
+		Enabled:       settings.WorkHoursEnabled,
+		UseTargetOnly: settings.WorkHours.UseTargetOnly,
+		Days:          make([]history.ScheduleDay, 0, len(settings.WorkHours.Days)),
+	}
+	for _, day := range settings.WorkHours.Days {
+		target := history.ScheduleDay{
+			Enabled:       day.Enabled,
+			StartMinute:   mustParseClock(day.Start),
+			EndMinute:     mustParseClock(day.End),
+			TargetMinutes: day.TargetMinutes,
+			Breaks:        make([]history.SchedulePause, 0, len(day.Breaks)),
+		}
+		for _, br := range day.Breaks {
+			target.Breaks = append(target.Breaks, history.SchedulePause{
+				StartMinute:     mustParseClock(br.Start),
+				DurationMinutes: br.DurationMinutes,
+			})
+		}
+		out.Days = append(out.Days, target)
+	}
+	for len(out.Days) < 7 {
+		out.Days = append(out.Days, history.ScheduleDay{})
+	}
+	return out
+}
+
+func mustParseClock(value string) int {
+	parts := strings.Split(value, ":")
+	if len(parts) != 2 {
+		return 0
+	}
+	hour, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return 0
+	}
+	min, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return 0
+	}
+	return hour*60 + min
 }
 
 // ShowWindow brings the window back to the foreground.

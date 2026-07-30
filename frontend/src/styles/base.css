@@ -36,6 +36,11 @@
     color: var(--fg-dim);
 }
 
+.app--report {
+    overflow-y: auto;
+    padding-right: 16px;
+}
+
 .app__header {
     display: flex;
     align-items: center;

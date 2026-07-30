@@ -5,8 +5,10 @@ import "./HarvestHud.css";
 type Props = {
     language: string;
     tomatoes: number;
+    total: number;
     streak: number;
     bestStreak: number;
+    onOpenReport: () => void;
 };
 
 function TomatoIcon() {
@@ -22,7 +24,7 @@ function TomatoIcon() {
     );
 }
 
-function HarvestHud({language, tomatoes, streak, bestStreak}: Props) {
+function HarvestHud({language, tomatoes, total, streak, bestStreak, onOpenReport}: Props) {
     const t = texts(language);
     const [popping, setPopping] = useState(false);
     const previous = useRef(tomatoes);
@@ -38,12 +40,13 @@ function HarvestHud({language, tomatoes, streak, bestStreak}: Props) {
     }, [tomatoes]);
 
     return (
-        <div
+        <button
             className={`harvest${popping ? " harvest--pop" : ""}`}
-            aria-label={t.harvestAria(tomatoes, streak, bestStreak)}
-            role="img"
+            aria-label={t.harvestAria(tomatoes, total, streak, bestStreak)}
+            title={t.reportOpenTitle}
+            onClick={onOpenReport}
         >
-            <span className="harvest__total" title={t.harvestTitle(tomatoes)}>
+            <span className="harvest__total" title={t.harvestTitle(tomatoes, total)}>
                 <TomatoIcon />
                 <span className="harvest__count" aria-hidden="true">
                     {tomatoes}
@@ -58,7 +61,7 @@ function HarvestHud({language, tomatoes, streak, bestStreak}: Props) {
                     {t.streakLabel(streak)}
                 </span>
             )}
-        </div>
+        </button>
     );
 }
 

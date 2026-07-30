@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reflect"
 	"testing"
 
 	"t1m/internal/i18n"
@@ -34,7 +35,7 @@ func writeSettingsFile(t *testing.T, dir, content string) {
 func TestLoadSettingsFallsBackToDefaultsWhenMissing(t *testing.T) {
 	isolateConfig(t)
 
-	if got, want := LoadSettings(), timer.DefaultSettings(); got != want {
+	if got, want := LoadSettings(), timer.DefaultSettings(); !reflect.DeepEqual(got, want) {
 		t.Fatalf("expected defaults, got %+v", got)
 	}
 }
@@ -52,7 +53,7 @@ func TestSaveAndLoadSettingsRoundTrip(t *testing.T) {
 	if err := SaveSettings(want); err != nil {
 		t.Fatalf("save: %v", err)
 	}
-	if got := LoadSettings(); got != want {
+	if got := LoadSettings(); !reflect.DeepEqual(got, want) {
 		t.Fatalf("round trip mismatch:\n got %+v\nwant %+v", got, want)
 	}
 }
@@ -82,7 +83,7 @@ func TestLoadSettingsIgnoresBrokenFile(t *testing.T) {
 	dir := isolateConfig(t)
 	writeSettingsFile(t, dir, "{not json")
 
-	if got, want := LoadSettings(), timer.DefaultSettings(); got != want {
+	if got, want := LoadSettings(), timer.DefaultSettings(); !reflect.DeepEqual(got, want) {
 		t.Fatalf("expected defaults for broken file, got %+v", got)
 	}
 }
@@ -91,7 +92,7 @@ func TestLoadSettingsIgnoresInvalidValues(t *testing.T) {
 	dir := isolateConfig(t)
 	writeSettingsFile(t, dir, `{"workSeconds": 0}`)
 
-	if got, want := LoadSettings(), timer.DefaultSettings(); got != want {
+	if got, want := LoadSettings(), timer.DefaultSettings(); !reflect.DeepEqual(got, want) {
 		t.Fatalf("expected defaults for invalid values, got %+v", got)
 	}
 }

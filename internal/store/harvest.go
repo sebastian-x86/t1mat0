@@ -36,8 +36,11 @@ func LoadHarvest() timer.Harvest {
 	if err := json.Unmarshal(data, &harvest); err != nil {
 		return timer.Harvest{}
 	}
-	if harvest.Tomatoes < 0 || harvest.Streak < 0 || harvest.BestStreak < 0 {
+	if harvest.Tomatoes < 0 || harvest.Total < 0 || harvest.Streak < 0 || harvest.BestStreak < 0 {
 		return timer.Harvest{}
+	}
+	if harvest.Total < harvest.Tomatoes {
+		harvest.Total = harvest.Tomatoes
 	}
 	return harvest
 }
