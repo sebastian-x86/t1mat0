@@ -154,6 +154,12 @@
     color: var(--on-accent);
 }
 
+.gear__panel .btn--primary:hover {
+    background: var(--surface);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
 .gear__panel .toggle {
     gap: 8px;
     font-size: 0.8rem;
