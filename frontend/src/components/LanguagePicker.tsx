@@ -1,3 +1,5 @@
+import "./LanguagePicker.css";
+
 /**
  * Language choice as a small segmented control. A native <select> pops open a
  * list that is drawn by the OS and spills out of the settings panel, so the

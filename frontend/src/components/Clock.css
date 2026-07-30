@@ -1,0 +1,70 @@
+.clock {
+    --wails-draggable: no-drag;
+    text-align: center;
+}
+
+.clock__value {
+    font-size: 3.6rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}
+
+.clock__value--button {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    text-align: center;
+    cursor: text;
+    transition: background 0.15s ease;
+}
+
+.clock__value--button:hover {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.clock__input {
+    width: 100%;
+    padding: 0;
+    border: none;
+    border-bottom: 2px solid var(--accent);
+    border-radius: 0;
+    background: transparent;
+    color: #f9fafb;
+    font-family: inherit;
+    text-align: center;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.clock__input--error {
+    border-bottom-color: #f87171;
+    color: #fca5a5;
+}
+
+.clock__status {
+    margin-top: 4px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+}
+
+.clock__progress {
+    margin-top: 14px;
+    height: 6px;
+    border-radius: 999px;
+    background: #1f2937;
+    overflow: hidden;
+}
+
+.clock__progress-bar {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.3s linear;
+}

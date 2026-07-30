@@ -1,5 +1,6 @@
 import {useEffect, useRef, useState} from "react";
-import {texts} from "./i18n";
+import {texts} from "../i18n";
+import "./HarvestHud.css";
 
 type Props = {
     language: string;

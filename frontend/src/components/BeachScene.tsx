@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import SnoozeZs from "./SnoozeZs";
+import "./BeachScene.css";
 
 const COCKTAIL_TOP = 189;
 const COCKTAIL_BOTTOM = 212;

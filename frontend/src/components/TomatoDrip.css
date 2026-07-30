@@ -1,0 +1,415 @@
+.drip {
+    --wails-draggable: no-drag;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.drip__svg {
+    color: var(--accent-work);
+    width: 100%;
+    height: 100%;
+    max-height: 250px;
+    overflow: visible;
+}
+
+.drip__shell {
+    fill: currentColor;
+    opacity: 0.14;
+}
+
+.drip__outline {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    opacity: 0.55;
+}
+
+.drip__shine {
+    fill: #ffffff;
+    opacity: 0.16;
+}
+
+.drip__leaves {
+    fill: #4d7c3f;
+}
+
+.drip__juice {
+    fill: currentColor;
+    transition: transform 0.45s cubic-bezier(0.33, 1, 0.68, 1);
+    will-change: transform;
+}
+
+.drip__surface {
+    fill: #ffffff;
+    opacity: 0.25;
+}
+
+.drip__glass-body {
+    fill: #ffffff;
+    opacity: 0.05;
+}
+
+.drip__glass-outline {
+    fill: none;
+    stroke: #cbd5e1;
+    stroke-width: 2;
+    stroke-linejoin: round;
+    opacity: 0.45;
+}
+
+.drip__glass-shine {
+    stroke: #ffffff;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    opacity: 0.12;
+}
+
+.drip__drop {
+    fill: currentColor;
+    opacity: 0;
+    /* The path starts at its own origin, so scaling swells the drop downwards
+       out of the tomato instead of moving it. */
+    transform-origin: 0 0;
+    animation: drip-fall 0.95s ease-in 1 both;
+}
+
+.drip--full .drip__glass-outline {
+    opacity: 0.8;
+}
+
+@keyframes drip-fall {
+    /* First half: the drop swells while the juice level above is still
+       animating. Second half: it lets go and falls into the glass. */
+    0% {
+        transform: translateY(-4px) scale(0.1);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.95;
+    }
+    45% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+    55% {
+        transform: translateY(3px) scale(0.95, 1.1);
+        opacity: 1;
+    }
+    88% {
+        transform: translateY(50px) scale(0.9, 1.2);
+        opacity: 0.95;
+    }
+    100% {
+        transform: translateY(62px) scale(0.8, 0.45);
+        opacity: 0;
+    }
+}
+
+/* --- Skip squeezes the tomato ------------------------------------------ */
+
+.drip--squeeze .drip__juice {
+    /* Wait for the hand to hit, then dump everything into the glass at once. */
+    transition: transform 0.22s cubic-bezier(0.6, 0, 0.9, 0.2) 0.46s;
+}
+
+.drip--squeeze .drip__svg {
+    animation: squeeze-shake 0.42s ease-out 0.44s both;
+}
+
+.drip__trouser {
+    fill: #9a6a33;
+    stroke: #6d4820;
+    stroke-width: 2;
+}
+
+.drip__stitching {
+    stroke: #e0b352;
+    stroke-width: 1.4;
+    opacity: 0.75;
+}
+
+.drip__cuff {
+    fill: #7d5426;
+    stroke: #5c3c1b;
+    stroke-width: 2;
+}
+
+.drip__sock {
+    fill: #f4f4f5;
+    stroke: #d4d4d8;
+    stroke-width: 2;
+}
+
+.drip__shoe {
+    fill: #1c1c1f;
+    stroke: #0b0b0d;
+    stroke-width: 2;
+}
+
+.drip__shoe-toe {
+    fill: #131316;
+}
+
+.drip__collar {
+    fill: none;
+    stroke: #f4f4f5;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+}
+
+/* The stripe carries a thin dark outline, like the stitched original. */
+.drip__stripe-shadow {
+    fill: none;
+    stroke: #0b0b0d;
+    stroke-width: 12;
+    stroke-linecap: round;
+}
+
+.drip__stripe {
+    fill: none;
+    stroke: #fafafa;
+    stroke-width: 9;
+    stroke-linecap: round;
+}
+
+.drip__laces {
+    stroke: #f4f4f5;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+}
+
+.drip__foxing {
+    fill: #f1f1f3;
+    stroke: #c7c7cc;
+    stroke-width: 2;
+}
+
+.drip__foxing-line {
+    fill: none;
+    stroke: #c7c7cc;
+    stroke-width: 1.4;
+}
+
+.drip__welt {
+    fill: none;
+    stroke: #1c1c1f;
+    stroke-width: 2.4;
+}
+
+.drip__label {
+    fill: #e11d48;
+}
+
+.drip__waffle {
+    stroke: #b9b9bf;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+}
+
+.drip__foot {
+    transform-origin: 100px -60px;
+    animation: squeeze-stomp 2.6s cubic-bezier(0.6, 0, 0.2, 1) both;
+}
+
+.drip--squeeze .drip__tomato {
+    transform-origin: 100px 115px;
+    animation: squeeze-tomato 2.6s cubic-bezier(0.5, 0, 0.3, 1) both;
+}
+
+.drip--squeeze .drip__leaves {
+    transform-origin: 100px 28px;
+    animation: squeeze-leaves 2.6s cubic-bezier(0.4, 0, 0.6, 1) both;
+}
+
+.drip__stream {
+    fill: currentColor;
+    opacity: 0;
+    transform-origin: 100px 112px;
+    animation: squeeze-stream 2.6s ease-out both;
+}
+
+.drip__splatter circle {
+    fill: currentColor;
+    opacity: 0;
+    animation: squeeze-splat 0.75s cubic-bezier(0.2, 0.7, 0.4, 1) 0.46s both;
+}
+
+.drip__puddle {
+    fill: currentColor;
+    opacity: 0;
+    transform-origin: 112px 246px;
+    animation: squeeze-puddle 1s ease-out 0.5s both;
+}
+
+@keyframes squeeze-stomp {
+    0% {
+        transform: translateY(-250px) rotate(-14deg);
+        opacity: 0;
+    }
+    6% {
+        opacity: 1;
+    }
+    12% {
+        transform: translateY(-120px) rotate(-12deg);
+    }
+    /* Short anticipation before the boot comes down. */
+    15% {
+        transform: translateY(-140px) rotate(-16deg);
+    }
+    23% {
+        transform: translateY(112px) rotate(2deg);
+    }
+    27% {
+        transform: translateY(104px) rotate(0deg);
+    }
+    46% {
+        transform: translateY(108px) rotate(0deg);
+    }
+    62% {
+        transform: translateY(-130px) rotate(-10deg);
+        opacity: 1;
+    }
+    72%,
+    100% {
+        transform: translateY(-250px) rotate(-14deg);
+        opacity: 0;
+    }
+}
+
+@keyframes squeeze-tomato {
+    0%,
+    17% {
+        transform: scale(1, 1);
+    }
+    /* Bulges sideways just before it gives in. */
+    20% {
+        transform: scale(1.12, 0.82);
+    }
+    23% {
+        transform: scale(1.46, 0.24);
+    }
+    26% {
+        transform: scale(1.32, 0.16);
+    }
+    30% {
+        transform: scale(1.38, 0.13);
+    }
+    100% {
+        transform: scale(1.36, 0.12);
+    }
+}
+
+@keyframes squeeze-leaves {
+    0%,
+    20% {
+        transform: translate(0, 0) rotate(0deg);
+    }
+    26% {
+        transform: translate(10px, 26px) rotate(-34deg);
+    }
+    40% {
+        transform: translate(38px, 150px) rotate(28deg);
+    }
+    50% {
+        transform: translate(54px, 216px) rotate(62deg);
+    }
+    56% {
+        transform: translate(52px, 208px) rotate(50deg);
+    }
+    62%,
+    100% {
+        transform: translate(53px, 213px) rotate(55deg);
+    }
+}
+
+@keyframes squeeze-stream {
+    0%,
+    20% {
+        transform: scaleY(0);
+        opacity: 0;
+    }
+    24% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+    40% {
+        transform: scaleY(1);
+        opacity: 0.9;
+    }
+    52%,
+    100% {
+        transform: scaleY(1);
+        opacity: 0;
+    }
+}
+
+@keyframes squeeze-shake {
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+    20% {
+        transform: translate(-4px, 3px);
+    }
+    40% {
+        transform: translate(4px, -2px);
+    }
+    60% {
+        transform: translate(-3px, 1px);
+    }
+    80% {
+        transform: translate(2px, -1px);
+    }
+}
+
+@keyframes squeeze-splat {
+    0% {
+        transform: translate(0, 0) scale(0.3);
+        opacity: 0;
+    }
+    12% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(var(--splat-x), var(--splat-y)) scale(0.8);
+        opacity: 0;
+    }
+}
+
+@keyframes squeeze-puddle {
+    0% {
+        transform: scale(0.15);
+        opacity: 0;
+    }
+    55% {
+        transform: scale(1.12);
+        opacity: 0.9;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .drip--squeeze .drip__tomato,
+    .drip--squeeze .drip__leaves,
+    .drip--squeeze .drip__svg,
+    .drip__foot,
+    .drip__stream,
+    .drip__splatter circle,
+    .drip__puddle {
+        animation-duration: 0.01s;
+    }
+
+    .drip__juice {
+        transition: none;
+    }
+
+    .drip__drop {
+        animation: none;
+    }
+}
