@@ -313,3 +313,35 @@ func TestStartRefillsAnExpiredPhase(t *testing.T) {
 		t.Fatalf("expected a running timer, got %q", state.Status)
 	}
 }
+
+func TestSetHistoryRetentionDaysRejectsOutOfRange(t *testing.T) {
+	timer := NewTimer(testSettings())
+
+	state, err := timer.SetHistoryRetentionDays(90)
+	if err != nil {
+		t.Fatalf("90 days should be accepted: %v", err)
+	}
+	if state.Settings.HistoryRetentionDays != 90 {
+		t.Fatalf("expected 90, got %d", state.Settings.HistoryRetentionDays)
+	}
+
+	for _, days := range []int{0, -1, 3651} {
+		if _, err := timer.SetHistoryRetentionDays(days); !errors.Is(err, ErrInvalidSettings) {
+			t.Fatalf("%d days should be rejected, got %v", days, err)
+		}
+	}
+	if got := timer.Snapshot().Settings.HistoryRetentionDays; got != 90 {
+		t.Fatalf("a rejected value must not change the setting, got %d", got)
+	}
+}
+
+func TestSetWorkHoursEnabledToggles(t *testing.T) {
+	timer := NewTimer(testSettings())
+
+	if got := timer.SetWorkHoursEnabled(true).Settings.WorkHoursEnabled; !got {
+		t.Fatal("workHoursEnabled should be true")
+	}
+	if got := timer.SetWorkHoursEnabled(false).Settings.WorkHoursEnabled; got {
+		t.Fatal("workHoursEnabled should be false")
+	}
+}

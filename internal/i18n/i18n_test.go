@@ -30,3 +30,18 @@ func TestResolveLanguageHonoursExplicitChoice(t *testing.T) {
 		t.Errorf("auto resolved to unsupported language %q", got)
 	}
 }
+
+func TestTranslateFallsBackToEnglish(t *testing.T) {
+	if got := T(LangGerman, "notify.showWindow"); got != "Fenster zeigen" {
+		t.Errorf("German lookup returned %q", got)
+	}
+	if got := T(LangEnglish, "notify.showWindow"); got != "Show the window" {
+		t.Errorf("English lookup returned %q", got)
+	}
+	if got := T("fr", "notify.showWindow"); got != "Show the window" {
+		t.Errorf("unknown language should fall back to English, got %q", got)
+	}
+	if got := T(LangGerman, "does.not.exist"); got != "does.not.exist" {
+		t.Errorf("unknown key should return itself, got %q", got)
+	}
+}
