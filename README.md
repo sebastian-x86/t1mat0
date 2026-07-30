@@ -115,7 +115,7 @@ mit Vitest geprüft werden kann:
 cd frontend
 npm test                           # einmalig
 npm run test:watch                 # im Watch-Modus
-npm run lint                       # ESLint mit den React-Hooks-Regeln
+npm run lint                       # oxlint inkl. der React-Hooks-Regeln
 npm run format                     # Prettier
 ```
 
