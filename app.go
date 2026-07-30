@@ -6,6 +6,11 @@ import (
 	"time"
 
 	wailsRuntime "github.com/wailsapp/wails/v2/pkg/runtime"
+
+	"t1m/internal/i18n"
+	"t1m/internal/store"
+	"t1m/internal/timer"
+	"t1m/internal/tray"
 )
 
 const (
@@ -16,7 +21,7 @@ const (
 // App wires the pomodoro domain to the Wails runtime.
 type App struct {
 	ctx    context.Context
-	timer  *Timer
+	timer  *timer.Timer
 	ticker *time.Ticker
 	done   chan struct{}
 
@@ -28,10 +33,10 @@ type App struct {
 
 // NewApp creates the application with persisted settings applied.
 func NewApp() *App {
-	timer := NewTimer(LoadSettings())
-	timer.SetHarvest(LoadHarvest())
+	machine := timer.NewTimer(store.LoadSettings())
+	machine.SetHarvest(store.LoadHarvest())
 	return &App{
-		timer:         timer,
+		timer:         machine,
 		done:          make(chan struct{}),
 		windowVisible: true,
 	}
@@ -48,7 +53,7 @@ func (a *App) startup(ctx context.Context) {
 	state := a.timer.Snapshot()
 	wailsRuntime.WindowSetAlwaysOnTop(ctx, state.Settings.AlwaysOnTop)
 
-	startTray(a)
+	tray.Start(a, trayIcon())
 	a.publish(state)
 
 	a.ticker = time.NewTicker(time.Second)
@@ -64,13 +69,13 @@ func (a *App) shutdown(ctx context.Context) {
 	default:
 		close(a.done)
 	}
-	stopTray()
+	tray.Stop()
 	// A shutdown before startup has no runtime context; the settings still
 	// have to reach the disk.
 	if ctx != nil {
 		wailsRuntime.CleanupNotifications(ctx)
 	}
-	_ = SaveSettings(a.timer.Snapshot().Settings)
+	_ = store.SaveSettings(a.timer.Snapshot().Settings)
 }
 
 // beforeClose hides the window into the tray instead of quitting the app.
@@ -81,7 +86,7 @@ func (a *App) beforeClose(ctx context.Context) bool {
 	quitting := a.quitting
 	a.mu.Unlock()
 
-	if quitting || !trayAvailable() {
+	if quitting || !tray.Available() {
 		return false
 	}
 	a.HideWindow()
@@ -99,7 +104,7 @@ func (a *App) runLoop() {
 				a.announcePhase(result.State, result.FinishedPhase)
 			}
 			if result.Harvested {
-				_ = SaveHarvest(result.State.Harvest)
+				_ = store.SaveHarvest(result.State.Harvest)
 			}
 			a.publish(result.State)
 		}
@@ -107,15 +112,15 @@ func (a *App) runLoop() {
 }
 
 // publish pushes the state to the frontend and the tray.
-func (a *App) publish(state State) {
+func (a *App) publish(state timer.State) {
 	if a.ctx != nil {
 		wailsRuntime.EventsEmit(a.ctx, eventState, state)
 	}
-	updateTray(state)
+	tray.Update(state)
 }
 
 // announcePhase fires the notification and sound for a completed phase.
-func (a *App) announcePhase(state State, finished Phase) {
+func (a *App) announcePhase(state timer.State, finished timer.Phase) {
 	if a.ctx == nil {
 		return
 	}
@@ -123,8 +128,8 @@ func (a *App) announcePhase(state State, finished Phase) {
 	if !a.notifyDisabled {
 		err := wailsRuntime.SendNotification(a.ctx, wailsRuntime.NotificationOptions{
 			ID:    "pomodoro-phase",
-			Title: PhaseLabelIn(state.Language, finished) + " " + T(state.Language, "notify.finished"),
-			Body:  T(state.Language, "notify.next") + ": " + state.PhaseLabel + " (" + state.FormattedRemaining + ")",
+			Title: timer.PhaseLabelIn(state.Language, finished) + " " + i18n.T(state.Language, "notify.finished"),
+			Body:  i18n.T(state.Language, "notify.next") + ": " + state.PhaseLabel + " (" + state.FormattedRemaining + ")",
 		})
 		if err != nil {
 			wailsRuntime.LogWarningf(a.ctx, "failed to send notification: %v", err)
@@ -142,53 +147,53 @@ func (a *App) GetVersion() string {
 }
 
 // GetState returns the current timer snapshot.
-func (a *App) GetState() State {
+func (a *App) GetState() timer.State {
 	return a.timer.Snapshot()
 }
 
 // Start starts or resumes the timer.
-func (a *App) Start() State {
+func (a *App) Start() timer.State {
 	state := a.timer.Start()
 	a.publish(state)
 	return state
 }
 
 // Pause pauses the timer.
-func (a *App) Pause() State {
+func (a *App) Pause() timer.State {
 	state := a.timer.Pause()
 	a.publish(state)
 	return state
 }
 
 // Toggle switches between running and paused.
-func (a *App) Toggle() State {
+func (a *App) Toggle() timer.State {
 	state := a.timer.Toggle()
 	a.publish(state)
 	return state
 }
 
 // Reset returns the timer to a fresh work phase.
-func (a *App) Reset() State {
+func (a *App) Reset() timer.State {
 	state := a.timer.Reset()
-	_ = SaveHarvest(state.Harvest)
+	_ = store.SaveHarvest(state.Harvest)
 	a.publish(state)
 	return state
 }
 
 // Skip jumps to the next phase.
-func (a *App) Skip() State {
+func (a *App) Skip() timer.State {
 	state, finished := a.timer.Skip()
 	a.announcePhase(state, finished)
 	// A skipped work phase breaks the streak; persist that right away.
-	if finished == PhaseWork {
-		_ = SaveHarvest(state.Harvest)
+	if finished == timer.PhaseWork {
+		_ = store.SaveHarvest(state.Harvest)
 	}
 	a.publish(state)
 	return state
 }
 
 // UpdateSettings validates, applies and persists new settings.
-func (a *App) UpdateSettings(next Settings) (State, error) {
+func (a *App) UpdateSettings(next timer.Settings) (timer.State, error) {
 	state, err := a.timer.UpdateSettings(next)
 	if err != nil {
 		return state, err
@@ -197,7 +202,7 @@ func (a *App) UpdateSettings(next Settings) (State, error) {
 	if a.ctx != nil {
 		wailsRuntime.WindowSetAlwaysOnTop(a.ctx, state.Settings.AlwaysOnTop)
 	}
-	if err := SaveSettings(state.Settings); err != nil && a.ctx != nil {
+	if err := store.SaveSettings(state.Settings); err != nil && a.ctx != nil {
 		wailsRuntime.LogWarningf(a.ctx, "failed to persist settings: %v", err)
 	}
 
@@ -207,12 +212,12 @@ func (a *App) UpdateSettings(next Settings) (State, error) {
 
 // SetCurrentDuration changes the duration of the running phase from the clock
 // display and persists it as the new default for that phase.
-func (a *App) SetCurrentDuration(seconds int) (State, error) {
+func (a *App) SetCurrentDuration(seconds int) (timer.State, error) {
 	state, err := a.timer.SetCurrentPhaseSeconds(seconds)
 	if err != nil {
 		return state, err
 	}
-	if err := SaveSettings(state.Settings); err != nil && a.ctx != nil {
+	if err := store.SaveSettings(state.Settings); err != nil && a.ctx != nil {
 		wailsRuntime.LogWarningf(a.ctx, "failed to persist settings: %v", err)
 	}
 	a.publish(state)
@@ -220,36 +225,36 @@ func (a *App) SetCurrentDuration(seconds int) (State, error) {
 }
 
 // SetAlwaysOnTop toggles the always-on-top window flag.
-func (a *App) SetAlwaysOnTop(enabled bool) State {
+func (a *App) SetAlwaysOnTop(enabled bool) timer.State {
 	state := a.timer.SetAlwaysOnTop(enabled)
 	if a.ctx != nil {
 		wailsRuntime.WindowSetAlwaysOnTop(a.ctx, enabled)
 	}
-	_ = SaveSettings(state.Settings)
+	_ = store.SaveSettings(state.Settings)
 	a.publish(state)
 	return state
 }
 
 // SetSoundEnabled toggles the phase change sound.
-func (a *App) SetSoundEnabled(enabled bool) State {
+func (a *App) SetSoundEnabled(enabled bool) timer.State {
 	state := a.timer.SetSoundEnabled(enabled)
-	_ = SaveSettings(state.Settings)
+	_ = store.SaveSettings(state.Settings)
 	a.publish(state)
 	return state
 }
 
 // SetLanguage switches the UI language.
-func (a *App) SetLanguage(language string) State {
+func (a *App) SetLanguage(language string) timer.State {
 	state := a.timer.SetLanguage(language)
-	_ = SaveSettings(state.Settings)
+	_ = store.SaveSettings(state.Settings)
 	a.publish(state)
 	return state
 }
 
 // SetSingleKeyShortcuts toggles the letter based keyboard shortcuts.
-func (a *App) SetSingleKeyShortcuts(enabled bool) State {
+func (a *App) SetSingleKeyShortcuts(enabled bool) timer.State {
 	state := a.timer.SetSingleKeyShortcuts(enabled)
-	_ = SaveSettings(state.Settings)
+	_ = store.SaveSettings(state.Settings)
 	a.publish(state)
 	return state
 }
@@ -301,6 +306,6 @@ func (a *App) Quit() {
 
 	// Drop the tray icon before the window goes away, otherwise Windows keeps
 	// showing a ghost icon until the notification area is hovered.
-	stopTray()
+	tray.Stop()
 	wailsRuntime.Quit(a.ctx)
 }

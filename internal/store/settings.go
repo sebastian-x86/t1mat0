@@ -1,29 +1,34 @@
-package main
+// Package store keeps settings.json and harvest.json on disk. It is the only
+// package that touches the file system.
+package store
 
 import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+
+	"t1m/internal/timer"
 )
 
 const (
-	settingsDirName  = "t1mat0"
-	settingsFileName = "settings.json"
+	settingsDirName = "t1mat0"
+	// SettingsFileName is the file the settings live in.
+	SettingsFileName = "settings.json"
 )
 
-// settingsPath resolves the per-user settings file location. When a portable
+// SettingsPath resolves the per-user settings file location. When a portable
 // marker file sits next to the executable, settings are stored alongside the
 // binary instead so the app stays self-contained on a USB stick.
-func settingsPath() (string, error) {
+func SettingsPath() (string, error) {
 	if dir, ok := portableDir(); ok {
-		return filepath.Join(dir, settingsFileName), nil
+		return filepath.Join(dir, SettingsFileName), nil
 	}
 
 	configDir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(configDir, settingsDirName, settingsFileName), nil
+	return filepath.Join(configDir, settingsDirName, SettingsFileName), nil
 }
 
 // portableDir returns the executable directory when the app runs in portable
@@ -42,30 +47,30 @@ func portableDir() (string, bool) {
 
 // LoadSettings reads persisted settings, falling back to defaults when the file
 // is missing or unreadable.
-func LoadSettings() Settings {
-	path, err := settingsPath()
+func LoadSettings() timer.Settings {
+	path, err := SettingsPath()
 	if err != nil {
-		return DefaultSettings()
+		return timer.DefaultSettings()
 	}
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return DefaultSettings()
+		return timer.DefaultSettings()
 	}
 
-	settings := DefaultSettings()
+	settings := timer.DefaultSettings()
 	if err := json.Unmarshal(data, &settings); err != nil {
-		return DefaultSettings()
+		return timer.DefaultSettings()
 	}
 	if err := settings.Validate(); err != nil {
-		return DefaultSettings()
+		return timer.DefaultSettings()
 	}
 	return settings
 }
 
 // SaveSettings persists settings to disk.
-func SaveSettings(settings Settings) error {
-	path, err := settingsPath()
+func SaveSettings(settings timer.Settings) error {
+	path, err := SettingsPath()
 	if err != nil {
 		return err
 	}

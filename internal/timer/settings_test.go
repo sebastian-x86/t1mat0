@@ -1,8 +1,10 @@
-package main
+package timer
 
 import (
 	"errors"
 	"testing"
+
+	"t1m/internal/i18n"
 )
 
 func TestValidateRejectsOutOfRangeValues(t *testing.T) {
@@ -116,10 +118,10 @@ func TestSetCurrentPhaseSecondsRejectsOutOfRange(t *testing.T) {
 func TestSetLanguageNormalizesUnknownValues(t *testing.T) {
 	timer := NewTimer(testSettings())
 
-	if state := timer.SetLanguage(LangGerman); state.Settings.Language != LangGerman || state.Language != LangGerman {
+	if state := timer.SetLanguage(i18n.LangGerman); state.Settings.Language != i18n.LangGerman || state.Language != i18n.LangGerman {
 		t.Fatalf("expected german, got %+v", state.Settings.Language)
 	}
-	if state := timer.SetLanguage("klingon"); state.Settings.Language != LangAuto {
+	if state := timer.SetLanguage("klingon"); state.Settings.Language != i18n.LangAuto {
 		t.Fatalf("expected auto for an unknown language, got %q", state.Settings.Language)
 	}
 }
@@ -127,10 +129,10 @@ func TestSetLanguageNormalizesUnknownValues(t *testing.T) {
 func TestSetLanguageTranslatesThePhaseLabel(t *testing.T) {
 	timer := NewTimer(testSettings())
 
-	if got := timer.SetLanguage(LangGerman).PhaseLabel; got != "Arbeit" {
+	if got := timer.SetLanguage(i18n.LangGerman).PhaseLabel; got != "Arbeit" {
 		t.Fatalf("expected the german label, got %q", got)
 	}
-	if got := timer.SetLanguage(LangEnglish).PhaseLabel; got != "Work" {
+	if got := timer.SetLanguage(i18n.LangEnglish).PhaseLabel; got != "Work" {
 		t.Fatalf("expected the english label, got %q", got)
 	}
 }

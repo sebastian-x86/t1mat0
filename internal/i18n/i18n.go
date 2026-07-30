@@ -1,4 +1,6 @@
-package main
+// Package i18n holds every string the Go side shows and resolves the UI
+// language from the setting or the operating system.
+package i18n
 
 import "strings"
 
@@ -10,8 +12,8 @@ const (
 	LangGerman  = "de"
 )
 
-// ResolveLanguage turns the stored preference into a concrete language.
-func ResolveLanguage(preference string) string {
+// Resolve turns the stored preference into a concrete language.
+func Resolve(preference string) string {
 	switch preference {
 	case LangGerman, LangEnglish:
 		return preference
@@ -70,21 +72,4 @@ func T(lang, key string) string {
 		return value
 	}
 	return entry[LangEnglish]
-}
-
-// PhaseLabelIn returns the phase name in the given language.
-func PhaseLabelIn(lang string, phase Phase) string {
-	switch phase {
-	case PhaseShortBreak:
-		return T(lang, "phase.shortBreak")
-	case PhaseLongBreak:
-		return T(lang, "phase.longBreak")
-	default:
-		return T(lang, "phase.work")
-	}
-}
-
-// PhaseLabel returns the English phase name.
-func PhaseLabel(phase Phase) string {
-	return PhaseLabelIn(LangEnglish, phase)
 }
