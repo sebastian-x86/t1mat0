@@ -102,3 +102,28 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release upload ${{ needs.release-please.outputs.tag }} t1mat0-${{ needs.release-please.outputs.tag }}-macos-universal.zip --clobber
+
+  checksums:
+    name: SHA256SUMS
+    needs: [release-please, windows, macos]
+    if: needs.release-please.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      # Die Summen werden aus den hochgeladenen Assets gebildet, nicht aus den
+      # lokalen Build-Ausgaben: geprüft wird genau das, was Nutzer laden.
+      - name: Download the release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release download ${{ needs.release-please.outputs.tag }} --repo ${{ github.repository }} --dir dist --skip-existing
+
+      - name: Build SHA256SUMS
+        working-directory: dist
+        run: |
+          rm -f SHA256SUMS
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload ${{ needs.release-please.outputs.tag }} dist/SHA256SUMS --clobber

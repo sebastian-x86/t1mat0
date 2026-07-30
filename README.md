@@ -301,6 +301,25 @@ Fertige Binaries hängen an den
 Beide sind nicht signiert — Windows SmartScreen und macOS Gatekeeper wollen
 beim ersten Start eine Bestätigung.
 
+### Download prüfen
+
+An jedem Release hängt eine Datei `SHA256SUMS` mit der Prüfsumme jedes
+Artefakts. Sie wird in der CI aus genau den hochgeladenen Dateien erzeugt.
+
+```powershell
+# Windows (PowerShell), Ausgabe mit der Zeile in SHA256SUMS vergleichen
+Get-FileHash .\t1mat0-vX.Y.Z-windows-amd64.exe -Algorithm SHA256
+```
+
+```bash
+# macOS/Linux, im Ordner mit den Downloads und der SHA256SUMS
+shasum -a 256 --ignore-missing -c SHA256SUMS
+```
+
+Das belegt, dass die Datei unterwegs nicht verändert wurde. Es ersetzt keine
+Signatur: Wer die Prüfsummen-Datei austauschen könnte, könnte auch die Binary
+austauschen. Beides zusammen liegt auf der Release-Seite.
+
 Versioniert wird nach [SemVer](https://semver.org), erzeugt aus den
 Commit-Nachrichten ([Conventional Commits](https://www.conventionalcommits.org)):
 
