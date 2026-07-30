@@ -16,7 +16,7 @@ golangci-lint run --build-tags webkit2_41 ./...
 cd frontend
 npm test                      # Zeitlogik der Oberfläche
 npx tsc --noEmit
-npm run lint                  # ESLint inkl. React-Hooks-Regeln
+npm run lint                  # oxlint inkl. React-Hooks-Regeln
 npm run format:check          # Prettier; `npm run format` korrigiert
 ```
 

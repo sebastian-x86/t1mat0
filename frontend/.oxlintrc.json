@@ -1,0 +1,40 @@
+{
+    "$schema": "./node_modules/oxlint/configuration_schema.json",
+    // Wails erzeugt die Bindings, dist ist ein Build-Ergebnis.
+    "ignorePatterns": ["dist", "wailsjs", "node_modules"],
+    "env": {
+        "browser": true,
+        "es2022": true
+    },
+    // Die beiden React-Plugins laufen als ESLint-Plugins in oxlint. Der Alias
+    // ist nötig, weil oxlint einen eigenen, kleineren react-hooks-Satz
+    // mitbringt; wir wollen den vollständigen aus dem Original-Plugin.
+    "jsPlugins": [
+        {"name": "react-hooks-js", "specifier": "eslint-plugin-react-hooks"},
+        {"name": "react-refresh", "specifier": "eslint-plugin-react-refresh"}
+    ],
+    "plugins": ["typescript", "unicorn", "oxc", "react"],
+    "rules": {
+        "react-hooks-js/rules-of-hooks": "error",
+        "react-hooks-js/exhaustive-deps": "warn",
+        "react-hooks-js/static-components": "error",
+        "react-hooks-js/use-memo": "error",
+        "react-hooks-js/preserve-manual-memoization": "error",
+        "react-hooks-js/incompatible-library": "warn",
+        "react-hooks-js/immutability": "error",
+        "react-hooks-js/globals": "error",
+        "react-hooks-js/refs": "error",
+        "react-hooks-js/set-state-in-effect": "error",
+        "react-hooks-js/error-boundaries": "error",
+        "react-hooks-js/purity": "error",
+        "react-hooks-js/set-state-in-render": "error",
+        "react-hooks-js/unsupported-syntax": "warn",
+        "react-hooks-js/config": "error",
+        "react-hooks-js/gating": "error",
+        "react-refresh/only-export-components": ["warn", {"allowConstantExport": true}],
+        "typescript/no-explicit-any": "error",
+        // Ungenutzte Argumente mit _ davor sind Absicht, etwa bei
+        // Event-Handlern, die nur die Signatur erfüllen.
+        "no-unused-vars": ["error", {"argsIgnorePattern": "^_", "varsIgnorePattern": "^_"}]
+    }
+}
