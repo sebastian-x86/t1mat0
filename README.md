@@ -262,6 +262,29 @@ der `settings.json` und gilt sofort. Die Phasenfarben (rot, grün, blau) sind im
 hellen Design etwas dunkler, damit Text auf farbigen Flächen den Kontrast von
 WCAG 2.1 AA hält.
 
+## Benachrichtigungen
+
+Am Ende jeder Phase kommt eine Systembenachrichtigung — die des Betriebssystems,
+keine nachgebaute. Der Titel trägt ein Emoji je Phase (🍅 Arbeit, ☕ kurze Pause,
+🌴 lange Pause), das Anwendungssymbol daneben ist die Tomate aus der Exe. Nach
+einer Arbeitsphase steht die Ernte im Text: Anzahl der Tomaten und, ab zwei am
+Stück, die laufende Serie.
+
+Dazu gibt es Knöpfe direkt in der Benachrichtigung:
+
+| Nach der Phase | Knöpfe |
+| --- | --- |
+| Arbeit | `Pause starten`, `Pause überspringen` |
+| Pause | `Weiterarbeiten`, `Fenster zeigen` |
+
+`Pause starten` und `Weiterarbeiten` starten den Timer nur, wenn er nicht
+ohnehin schon läuft (`autoStartNext`). Ein Klick auf die Benachrichtigung selbst
+holt das Fenster nach vorn.
+
+Unter Windows liefert Wails die Toast-Registrierung samt Symbol mit; auf
+Plattformen ohne Unterstützung für Knöpfe fällt die Benachrichtigung
+automatisch auf die schlichte Variante mit Titel und Text zurück.
+
 ## Tomaten sammeln
 
 Rechts oben zeigt ein kleines HUD eine Tomate mit der Anzahl der geernteten

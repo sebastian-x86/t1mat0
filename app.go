@@ -51,6 +51,10 @@ func (a *App) startup(ctx context.Context) {
 	}
 
 	state := a.timer.Snapshot()
+	if !a.notifyDisabled {
+		wailsRuntime.OnNotificationResponse(ctx, a.handleNotificationResponse)
+		a.registerNotificationCategories(state.Language)
+	}
 	wailsRuntime.WindowSetAlwaysOnTop(ctx, state.Settings.AlwaysOnTop)
 
 	tray.Start(a, trayIcon())
@@ -127,10 +131,14 @@ func (a *App) announcePhase(state timer.State, finished timer.Phase) {
 	}
 
 	if !a.notifyDisabled {
-		err := wailsRuntime.SendNotification(a.ctx, wailsRuntime.NotificationOptions{
-			ID:    "pomodoro-phase",
-			Title: timer.PhaseLabelIn(state.Language, finished) + " " + i18n.T(state.Language, "notify.finished"),
-			Body:  i18n.T(state.Language, "notify.next") + ": " + state.PhaseLabel + " (" + state.FormattedRemaining + ")",
+		n := noticeFor(state, finished)
+		// Falls back to a plain notification on its own if the category is
+		// unknown, which is what happens on platforms without action support.
+		err := wailsRuntime.SendNotificationWithActions(a.ctx, wailsRuntime.NotificationOptions{
+			ID:         "pomodoro-phase",
+			Title:      n.Title,
+			Body:       n.Body,
+			CategoryID: n.CategoryID,
 		})
 		if err != nil {
 			wailsRuntime.LogWarningf(a.ctx, "failed to send notification: %v", err)
@@ -247,6 +255,11 @@ func (a *App) SetSoundEnabled(enabled bool) timer.State {
 // SetLanguage switches the UI language.
 func (a *App) SetLanguage(language string) timer.State {
 	state := a.timer.SetLanguage(language)
+	if a.ctx != nil && !a.notifyDisabled {
+		// The button titles are stored with the category, so they only follow
+		// the language when the categories are registered again.
+		a.registerNotificationCategories(state.Language)
+	}
 	_ = store.SaveSettings(state.Settings)
 	a.publish(state)
 	return state
@@ -258,6 +271,52 @@ func (a *App) SetTheme(theme string) timer.State {
 	_ = store.SaveSettings(state.Settings)
 	a.publish(state)
 	return state
+}
+
+// registerNotificationCategories declares the buttons the phase notifications
+// offer. Registering a category again overwrites the previous one.
+func (a *App) registerNotificationCategories(lang string) {
+	categories := []wailsRuntime.NotificationCategory{{
+		ID: categoryWorkDone,
+		Actions: []wailsRuntime.NotificationAction{
+			{ID: actionStart, Title: i18n.T(lang, "notify.startBreak")},
+			{ID: actionSkip, Title: i18n.T(lang, "notify.skipBreak")},
+		},
+	}, {
+		ID: categoryBreakDone,
+		Actions: []wailsRuntime.NotificationAction{
+			{ID: actionStart, Title: i18n.T(lang, "notify.backToWork")},
+			{ID: actionShow, Title: i18n.T(lang, "notify.showWindow")},
+		},
+	}}
+	for _, category := range categories {
+		if err := wailsRuntime.RegisterNotificationCategory(a.ctx, category); err != nil {
+			wailsRuntime.LogWarningf(a.ctx, "failed to register notification category %q: %v", category.ID, err)
+		}
+	}
+}
+
+// handleNotificationResponse runs the button the user pressed on a phase
+// notification. Anything else, including a click on the notification body,
+// brings the window back.
+func (a *App) handleNotificationResponse(result wailsRuntime.NotificationResult) {
+	if result.Error != nil {
+		wailsRuntime.LogWarningf(a.ctx, "notification response failed: %v", result.Error)
+		return
+	}
+
+	switch result.Response.ActionIdentifier {
+	case actionStart:
+		// The next phase may already be running through auto start; toggling
+		// blindly would pause it.
+		if a.timer.Snapshot().Status != timer.StatusRunning {
+			a.Toggle()
+		}
+	case actionSkip:
+		a.Skip()
+	default:
+		a.ShowWindow()
+	}
 }
 
 // SetCloseToTray toggles whether the close button hides the window.
