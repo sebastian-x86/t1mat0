@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.3.0](https://github.com/sebastian-x86/t1mat0/compare/t1mat0-v0.2.0...t1mat0-v0.3.0) (2026-07-30)
+
+
+### Features
+
+* **notify:** richer phase notifications with action buttons ([#44](https://github.com/sebastian-x86/t1mat0/issues/44)) ([ffe305a](https://github.com/sebastian-x86/t1mat0/commit/ffe305aa7fff6628eeac498de5cf37c0075b67ef)), closes [#37](https://github.com/sebastian-x86/t1mat0/issues/37)
+* **settings:** let notifications be switched off ([#46](https://github.com/sebastian-x86/t1mat0/issues/46)) ([c56af43](https://github.com/sebastian-x86/t1mat0/commit/c56af433c0a6e83767fa3f35f78451702976c03c))
+
+
+### Bug Fixes
+
+* **notify:** drop the needless variation selector ([#47](https://github.com/sebastian-x86/t1mat0/issues/47)) ([fd010bd](https://github.com/sebastian-x86/t1mat0/commit/fd010bd4d7dbeb99bd9b2e057b8f59d7b9d87da1))
+
 ## [0.2.0](https://github.com/sebastian-x86/t1mat0/compare/t1mat0-v0.1.0...t1mat0-v0.2.0) (2026-07-30)
 
 
