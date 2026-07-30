@@ -1,11 +1,12 @@
+import SystemIcon from "./SystemIcon";
 import "./LanguagePicker.css";
 
 /**
  * Language choice as a small segmented control. A native <select> pops open a
  * list that is drawn by the OS and spills out of the settings panel, so the
- * three options are shown inline instead: a globe for "follow the system" and
- * a flag per language. Flag emoji are not an option because Windows ships no
- * glyphs for them, hence the hand-drawn SVGs.
+ * three options are shown inline instead: a monitor for "follow the system",
+ * matching the theme picker, and a flag per language. Flag emoji are not an
+ * option because Windows ships no glyphs for them, hence the hand-drawn SVGs.
  */
 
 type Props = {
@@ -13,24 +14,6 @@ type Props = {
     onChange: (value: string) => void;
     autoLabel: string;
 };
-
-function Globe() {
-    return (
-        <svg className="langswitch__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="1.8" />
-            <ellipse
-                cx="12"
-                cy="12"
-                rx="4"
-                ry="9"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-            />
-            <path d="M3.4 9h17.2M3.4 15h17.2" fill="none" stroke="currentColor" strokeWidth="1.6" />
-        </svg>
-    );
-}
 
 function FlagDE() {
     return (
@@ -61,7 +44,7 @@ function FlagGB() {
 
 export default function LanguagePicker({value, onChange, autoLabel}: Props) {
     const options = [
-        {id: "auto", label: autoLabel, icon: <Globe />},
+        {id: "auto", label: autoLabel, icon: <SystemIcon className="langswitch__icon" />},
         {id: "de", label: "Deutsch", icon: <FlagDE />},
         {id: "en", label: "English", icon: <FlagGB />},
     ];
