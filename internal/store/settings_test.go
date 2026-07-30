@@ -1,10 +1,13 @@
-package main
+package store
 
 import (
 	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"t1m/internal/i18n"
+	"t1m/internal/timer"
 )
 
 // isolateConfig points the settings and harvest files at a throwaway directory
@@ -23,7 +26,7 @@ func writeSettingsFile(t *testing.T, dir, content string) {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, settingsFileName), []byte(content), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, SettingsFileName), []byte(content), 0o644); err != nil {
 		t.Fatalf("write settings: %v", err)
 	}
 }
@@ -31,7 +34,7 @@ func writeSettingsFile(t *testing.T, dir, content string) {
 func TestLoadSettingsFallsBackToDefaultsWhenMissing(t *testing.T) {
 	isolateConfig(t)
 
-	if got, want := LoadSettings(), DefaultSettings(); got != want {
+	if got, want := LoadSettings(), timer.DefaultSettings(); got != want {
 		t.Fatalf("expected defaults, got %+v", got)
 	}
 }
@@ -39,10 +42,10 @@ func TestLoadSettingsFallsBackToDefaultsWhenMissing(t *testing.T) {
 func TestSaveAndLoadSettingsRoundTrip(t *testing.T) {
 	isolateConfig(t)
 
-	want := DefaultSettings()
+	want := timer.DefaultSettings()
 	want.WorkSeconds = 42
 	want.ShortBreakSeconds = 30
-	want.Language = LangGerman
+	want.Language = i18n.LangGerman
 	want.SingleKeyShortcuts = false
 	want.AlwaysOnTop = true
 
@@ -58,7 +61,7 @@ func TestLoadSettingsIgnoresBrokenFile(t *testing.T) {
 	dir := isolateConfig(t)
 	writeSettingsFile(t, dir, "{not json")
 
-	if got, want := LoadSettings(), DefaultSettings(); got != want {
+	if got, want := LoadSettings(), timer.DefaultSettings(); got != want {
 		t.Fatalf("expected defaults for broken file, got %+v", got)
 	}
 }
@@ -67,7 +70,7 @@ func TestLoadSettingsIgnoresInvalidValues(t *testing.T) {
 	dir := isolateConfig(t)
 	writeSettingsFile(t, dir, `{"workSeconds": 0}`)
 
-	if got, want := LoadSettings(), DefaultSettings(); got != want {
+	if got, want := LoadSettings(), timer.DefaultSettings(); got != want {
 		t.Fatalf("expected defaults for invalid values, got %+v", got)
 	}
 }
@@ -88,7 +91,7 @@ func TestLoadSettingsKeepsDefaultsForMissingKeys(t *testing.T) {
 	if !got.SoundEnabled {
 		t.Fatal("soundEnabled should default to true")
 	}
-	if got.Language != LangAuto {
+	if got.Language != i18n.LangAuto {
 		t.Fatalf("language should default to auto, got %q", got.Language)
 	}
 }
@@ -106,7 +109,7 @@ func TestLoadSettingsUpgradesLegacyMinutes(t *testing.T) {
 // Both formats in one file: the seconds are authoritative, because they are
 // what the current version writes.
 func TestSettingsSecondsWinOverLegacyMinutes(t *testing.T) {
-	var settings Settings
+	var settings timer.Settings
 	if err := json.Unmarshal([]byte(`{"workMinutes": 30, "workSeconds": 61}`), &settings); err != nil {
 		t.Fatalf("unmarshal: %v", err)
 	}
@@ -118,11 +121,11 @@ func TestSettingsSecondsWinOverLegacyMinutes(t *testing.T) {
 func TestSaveSettingsWritesReadableJSON(t *testing.T) {
 	dir := isolateConfig(t)
 
-	if err := SaveSettings(DefaultSettings()); err != nil {
+	if err := SaveSettings(timer.DefaultSettings()); err != nil {
 		t.Fatalf("save: %v", err)
 	}
 
-	data, err := os.ReadFile(filepath.Join(dir, settingsFileName))
+	data, err := os.ReadFile(filepath.Join(dir, SettingsFileName))
 	if err != nil {
 		t.Fatalf("read: %v", err)
 	}

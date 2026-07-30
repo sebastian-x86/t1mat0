@@ -1,4 +1,4 @@
-package main
+package i18n
 
 import "testing"
 
@@ -20,26 +20,13 @@ func TestNormalizeLanguage(t *testing.T) {
 }
 
 func TestResolveLanguageHonoursExplicitChoice(t *testing.T) {
-	if got := ResolveLanguage(LangGerman); got != LangGerman {
+	if got := Resolve(LangGerman); got != LangGerman {
 		t.Errorf("explicit German resolved to %q", got)
 	}
-	if got := ResolveLanguage(LangEnglish); got != LangEnglish {
+	if got := Resolve(LangEnglish); got != LangEnglish {
 		t.Errorf("explicit English resolved to %q", got)
 	}
-	if got := ResolveLanguage(LangAuto); got != LangGerman && got != LangEnglish {
+	if got := Resolve(LangAuto); got != LangGerman && got != LangEnglish {
 		t.Errorf("auto resolved to unsupported language %q", got)
-	}
-}
-
-func TestPhaseLabelIn(t *testing.T) {
-	if got := PhaseLabelIn(LangGerman, PhaseWork); got != "Arbeit" {
-		t.Errorf("German work label = %q", got)
-	}
-	if got := PhaseLabelIn(LangEnglish, PhaseLongBreak); got != "Long Break" {
-		t.Errorf("English long break label = %q", got)
-	}
-	// Unknown languages fall back to English rather than showing the key.
-	if got := PhaseLabelIn("fr", PhaseShortBreak); got != "Short Break" {
-		t.Errorf("fallback label = %q", got)
 	}
 }

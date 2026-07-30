@@ -354,7 +354,7 @@ self-contained, z. B. für einen USB-Stick.
 | Schließen minimiert in Tray | ✅ | ✅ | ❌ (beendet) | ❌ (beendet) |
 
 Linux ist bewusst nur Entwicklungsplattform: Das Tray-Menü ist über Build-Tags
-auf Windows/macOS beschränkt (`tray_desktop.go` vs. `tray_stub.go`).
+auf Windows/macOS beschränkt (`internal/tray/tray_desktop.go` vs. `internal/tray/tray_stub.go`).
 Unter WSL2 daher am besten die Windows-Exe testen (siehe
 [Entwicklung unter WSL2](#entwicklung-unter-wsl2)).
 
@@ -401,19 +401,16 @@ go run ./tools/icongen build/appicon.png build/windows/icon.ico
 ## Projektstruktur
 
 ```
-timer.go               Pomodoro-Zustandsmaschine (pure Go, unit-getestet)
-harvest.go             Tomaten-Zähler und Serie, Persistenz in harvest.json
-i18n.go                Übersetzungen und Spracherkennung (Go-Seite)
-lang_windows.go        OS-Sprache über GetUserDefaultLocaleName
-lang_other.go          OS-Sprache über LC_ALL/LC_MESSAGES/LANG
-settings.go            Laden/Speichern der Settings, Portable-Erkennung
+internal/timer/        Pomodoro-Zustandsmaschine, Settings und Ernte (pure Go)
+internal/store/        Laden/Speichern von Settings und Ernte, Portable-Erkennung
+internal/i18n/         Übersetzungen und Spracherkennung (Go-Seite)
+internal/tray/         Tray-Menü (Windows/macOS, fyne.io/systray) plus No-op-Stub
 app.go                 Wails-Bindings, Ticker, Notifications, Fenstersteuerung
-*_test.go              Tests zu Timer, Settings, Ernte, Sprache und App
+app_test.go            Tests der gebundenen Methoden inkl. Persistenz
 main.go                Wails-App-Konfiguration
-tray_desktop.go        Tray-Menü (Windows/macOS, fyne.io/systray)
-tray_icon_windows.go   Tray-Icon für Windows (.ico)
-tray_icon_darwin.go    Tray-Icon für macOS (.png)
-tray_stub.go           No-op-Tray für alle anderen Plattformen
+tray_icon_windows.go   Tray-Icon für Windows (.ico, go:embed)
+tray_icon_darwin.go    Tray-Icon für macOS (.png, go:embed)
+tray_icon_other.go     Kein Icon auf allen anderen Plattformen
 wails.json             Wails-Projektkonfiguration
 version.txt            Aktuelle Version, gepflegt von release-please
 CHANGELOG.md           Automatisch aus den Commit-Nachrichten erzeugt

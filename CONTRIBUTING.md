@@ -88,7 +88,7 @@ Niemand vergibt Versionsnummern von Hand.
 - TypeScript/React: vier Leerzeichen Einrückung, Funktionskomponenten.
 - Neue Nutzertexte immer in **beiden** Sprachen ergänzen
   (`frontend/src/i18n.ts` und, falls Tray oder Benachrichtigung betroffen,
-  `i18n.go`).
+  `internal/i18n/i18n.go`).
 - Bedienelemente brauchen `title` und, wenn sie nur ein Icon zeigen,
   zusätzlich `aria-label`.
 - Neue Animationen müssen `prefers-reduced-motion` respektieren.

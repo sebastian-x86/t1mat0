@@ -7,15 +7,34 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"t1m/internal/i18n"
+	"t1m/internal/store"
+	"t1m/internal/timer"
 )
 
 // The App methods are exercised without a Wails context. Everything that talks
 // to the runtime is guarded by a nil check, so what is left is exactly the part
 // worth testing: state transitions plus persistence.
 
-func readSettingsFile(t *testing.T) Settings {
+// isolateConfig points the settings and harvest files at a throwaway directory
+// so the tests never touch the real configuration of the machine they run on.
+func isolateConfig(t *testing.T) string {
 	t.Helper()
-	path, err := settingsPath()
+	dir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", dir)
+	t.Setenv("AppData", dir)
+	t.Setenv("HOME", dir)
+	path, err := store.SettingsPath()
+	if err != nil {
+		t.Fatalf("settings path: %v", err)
+	}
+	return filepath.Dir(path)
+}
+
+func readSettingsFile(t *testing.T) timer.Settings {
+	t.Helper()
+	path, err := store.SettingsPath()
 	if err != nil {
 		t.Fatalf("settings path: %v", err)
 	}
@@ -23,16 +42,16 @@ func readSettingsFile(t *testing.T) Settings {
 	if err != nil {
 		t.Fatalf("read settings: %v", err)
 	}
-	settings := DefaultSettings()
+	settings := timer.DefaultSettings()
 	if err := json.Unmarshal(data, &settings); err != nil {
 		t.Fatalf("parse settings: %v", err)
 	}
 	return settings
 }
 
-func readHarvestFile(t *testing.T) Harvest {
+func readHarvestFile(t *testing.T) timer.Harvest {
 	t.Helper()
-	path, err := harvestPath()
+	path, err := store.HarvestPath()
 	if err != nil {
 		t.Fatalf("harvest path: %v", err)
 	}
@@ -40,7 +59,7 @@ func readHarvestFile(t *testing.T) Harvest {
 	if err != nil {
 		t.Fatalf("read harvest: %v", err)
 	}
-	var harvest Harvest
+	var harvest timer.Harvest
 	if err := json.Unmarshal(data, &harvest); err != nil {
 		t.Fatalf("parse harvest: %v", err)
 	}
@@ -50,13 +69,13 @@ func readHarvestFile(t *testing.T) Harvest {
 func TestNewAppRestoresPersistedState(t *testing.T) {
 	isolateConfig(t)
 
-	settings := DefaultSettings()
+	settings := timer.DefaultSettings()
 	settings.WorkSeconds = 90
-	settings.Language = LangGerman
-	if err := SaveSettings(settings); err != nil {
+	settings.Language = i18n.LangGerman
+	if err := store.SaveSettings(settings); err != nil {
 		t.Fatalf("save settings: %v", err)
 	}
-	if err := SaveHarvest(Harvest{Tomatoes: 4, Streak: 2, BestStreak: 6}); err != nil {
+	if err := store.SaveHarvest(timer.Harvest{Tomatoes: 4, Streak: 2, BestStreak: 6}); err != nil {
 		t.Fatalf("save harvest: %v", err)
 	}
 
@@ -76,23 +95,23 @@ func TestAppToggleSwitchesStatus(t *testing.T) {
 	isolateConfig(t)
 	app := NewApp()
 
-	if got := app.Toggle().Status; got != StatusRunning {
+	if got := app.Toggle().Status; got != timer.StatusRunning {
 		t.Fatalf("expected running, got %q", got)
 	}
-	if got := app.Toggle().Status; got != StatusPaused {
+	if got := app.Toggle().Status; got != timer.StatusPaused {
 		t.Fatalf("expected paused, got %q", got)
 	}
-	if got := app.Pause().Status; got != StatusPaused {
+	if got := app.Pause().Status; got != timer.StatusPaused {
 		t.Fatalf("pausing twice should stay paused, got %q", got)
 	}
-	if got := app.Start().Status; got != StatusRunning {
+	if got := app.Start().Status; got != timer.StatusRunning {
 		t.Fatalf("expected running, got %q", got)
 	}
 }
 
 func TestAppSkipPersistsTheBrokenStreak(t *testing.T) {
 	isolateConfig(t)
-	if err := SaveHarvest(Harvest{Tomatoes: 3, Streak: 3, BestStreak: 3}); err != nil {
+	if err := store.SaveHarvest(timer.Harvest{Tomatoes: 3, Streak: 3, BestStreak: 3}); err != nil {
 		t.Fatalf("save harvest: %v", err)
 	}
 
@@ -111,14 +130,14 @@ func TestAppSkipPersistsTheBrokenStreak(t *testing.T) {
 
 func TestAppResetPersistsTheHarvest(t *testing.T) {
 	isolateConfig(t)
-	if err := SaveHarvest(Harvest{Tomatoes: 2, Streak: 2, BestStreak: 5}); err != nil {
+	if err := store.SaveHarvest(timer.Harvest{Tomatoes: 2, Streak: 2, BestStreak: 5}); err != nil {
 		t.Fatalf("save harvest: %v", err)
 	}
 
 	app := NewApp()
 	state := app.Reset()
 
-	if state.Status != StatusIdle || state.Phase != PhaseWork {
+	if state.Status != timer.StatusIdle || state.Phase != timer.PhaseWork {
 		t.Fatalf("reset should return to an idle work phase, got %q/%q", state.Status, state.Phase)
 	}
 	stored := readHarvestFile(t)
@@ -131,13 +150,13 @@ func TestAppSettersPersistImmediately(t *testing.T) {
 	isolateConfig(t)
 	app := NewApp()
 
-	app.SetLanguage(LangGerman)
+	app.SetLanguage(i18n.LangGerman)
 	app.SetSoundEnabled(false)
 	app.SetSingleKeyShortcuts(false)
 	app.SetAlwaysOnTop(true)
 
 	stored := readSettingsFile(t)
-	if stored.Language != LangGerman {
+	if stored.Language != i18n.LangGerman {
 		t.Fatalf("language not persisted: %q", stored.Language)
 	}
 	if stored.SoundEnabled || stored.SingleKeyShortcuts {
@@ -152,14 +171,14 @@ func TestAppUpdateSettingsRejectsInvalidInput(t *testing.T) {
 	isolateConfig(t)
 	app := NewApp()
 
-	broken := DefaultSettings()
+	broken := timer.DefaultSettings()
 	broken.WorkSeconds = 0
 
-	if _, err := app.UpdateSettings(broken); !errors.Is(err, ErrInvalidSettings) {
-		t.Fatalf("expected ErrInvalidSettings, got %v", err)
+	if _, err := app.UpdateSettings(broken); !errors.Is(err, timer.ErrInvalidSettings) {
+		t.Fatalf("expected timer.ErrInvalidSettings, got %v", err)
 	}
 
-	path, err := settingsPath()
+	path, err := store.SettingsPath()
 	if err != nil {
 		t.Fatalf("settings path: %v", err)
 	}
@@ -189,8 +208,8 @@ func TestAppSetCurrentDurationRejectsOutOfRange(t *testing.T) {
 	isolateConfig(t)
 	app := NewApp()
 
-	if _, err := app.SetCurrentDuration(0); !errors.Is(err, ErrInvalidSettings) {
-		t.Fatalf("expected ErrInvalidSettings, got %v", err)
+	if _, err := app.SetCurrentDuration(0); !errors.Is(err, timer.ErrInvalidSettings) {
+		t.Fatalf("expected timer.ErrInvalidSettings, got %v", err)
 	}
 }
 
@@ -223,7 +242,7 @@ func TestAppShutdownPersistsSettings(t *testing.T) {
 	if _, err := app.SetCurrentDuration(120); err != nil {
 		t.Fatalf("set duration: %v", err)
 	}
-	if err := os.Remove(filepath.Join(dir, settingsFileName)); err != nil {
+	if err := os.Remove(filepath.Join(dir, store.SettingsFileName)); err != nil {
 		t.Fatalf("remove settings: %v", err)
 	}
 

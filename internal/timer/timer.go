@@ -1,10 +1,14 @@
-package main
+// Package timer holds the pomodoro state machine and the settings it runs on.
+// It knows nothing about Wails, the tray or the disk.
+package timer
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
+
+	"t1m/internal/i18n"
 )
 
 // Phase is one segment of a pomodoro cycle.
@@ -98,7 +102,7 @@ func DefaultSettings() Settings {
 		AlwaysOnTop:        false,
 		SoundEnabled:       true,
 		AutoStartNext:      true,
-		Language:           LangAuto,
+		Language:           i18n.LangAuto,
 		SingleKeyShortcuts: true,
 	}
 }
@@ -196,14 +200,14 @@ func (t *Timer) snapshotLocked() State {
 	return State{
 		Status:             t.status,
 		Phase:              t.phase,
-		PhaseLabel:         PhaseLabelIn(ResolveLanguage(t.settings.Language), t.phase),
+		PhaseLabel:         PhaseLabelIn(i18n.Resolve(t.settings.Language), t.phase),
 		CompletedWork:      t.completedWork,
 		RemainingSeconds:   t.remainingSeconds,
 		TotalSeconds:       t.phaseDurationSeconds(t.phase),
 		FormattedRemaining: FormatSeconds(t.remainingSeconds),
 		Settings:           t.settings,
 		Harvest:            t.harvest,
-		Language:           ResolveLanguage(t.settings.Language),
+		Language:           i18n.Resolve(t.settings.Language),
 	}
 }
 
@@ -401,10 +405,10 @@ func (t *Timer) SetLanguage(language string) State {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	switch language {
-	case LangGerman, LangEnglish:
+	case i18n.LangGerman, i18n.LangEnglish:
 		t.settings.Language = language
 	default:
-		t.settings.Language = LangAuto
+		t.settings.Language = i18n.LangAuto
 	}
 	return t.snapshotLocked()
 }
@@ -423,4 +427,21 @@ func (t *Timer) SetSingleKeyShortcuts(enabled bool) State {
 	defer t.mu.Unlock()
 	t.settings.SingleKeyShortcuts = enabled
 	return t.snapshotLocked()
+}
+
+// PhaseLabelIn returns the phase name in the given language.
+func PhaseLabelIn(lang string, phase Phase) string {
+	switch phase {
+	case PhaseShortBreak:
+		return i18n.T(lang, "phase.shortBreak")
+	case PhaseLongBreak:
+		return i18n.T(lang, "phase.longBreak")
+	default:
+		return i18n.T(lang, "phase.work")
+	}
+}
+
+// PhaseLabel returns the English phase name.
+func PhaseLabel(phase Phase) string {
+	return PhaseLabelIn(i18n.LangEnglish, phase)
 }
