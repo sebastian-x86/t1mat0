@@ -132,7 +132,7 @@ jobs:
           mkdir -p frontend/dist
           echo '<!doctype html><title>lint build</title>' > frontend/dist/index.html
 
-      - uses: golangci/golangci-lint-action@v8
+      - uses: golangci/golangci-lint-action@v9
         with:
           version: latest
           args: --build-tags webkit2_41
